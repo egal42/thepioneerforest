@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Live campaign impact from The Pioneer Forest – powered by Pi Network." />
+  <meta name="keywords" content="Pioneer Forest, Pi Network, Tree-Nation, impact, donation stats" />
+  <title>Impact & Donations – The Pioneer Forest</title>
+  <link rel="stylesheet" href="/forest/styles.css" />
+  <link rel="icon" href="/forest/favicon.ico" type="image/x-icon" />
+  <style>
+    .totals-box {
+      margin: 2em auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.2em;
+      padding: 1em;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      width: 95%;
+      max-width: 800px;
+      text-align: center;
+    }
+
+    .totals-box .donor-badge {
+      flex: 1 1 220px;
+      max-width: 240px;
+      padding: 1.2em 1em;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .glow-pi {
+      background: rgba(255, 192, 203, 0.1);
+      border-left: 4px solid #FFD700;
+    }
+
+    .glow-tree {
+      background: rgba(144, 238, 144, 0.1);
+      border-left: 4px solid #32CD32;
+    }
+
+    .donor-badge .rank {
+      display: block;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #A7F3D0;
+      margin-bottom: 0.4em;
+    }
+
+    .donor-badge .user {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #FFFFFF;
+    }
+
+    .donor-badge .amount {
+      font-size: 1em;
+      color: #CCCCCC;
+    }
+
+    @media (max-width: 800px) {
+      .totals-box {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background">
+    <div class="buttons">
+      <a href="/forest/forest.html" class="button">
+        <span class="desktop-text">⬅️ Back to Campaign</span>
+        <span class="mobile-text">Back</span>
+      </a>
+    </div>
+
+    <div class="content">
+      <section class="overlay">
+        <div class="overlay-content">
+          <h1>The Pioneer Forest 🌱</h1>
+          <p class="subtitle">Tracking real impact. Powered by Pi.</p>
+
+          <h2>Impact & Donations</h2>
+
+          <div class="totals-box">
+            <div class="donor-badge glow-pi">
+              <span class="rank">🟣 Total Pi Donated</span>
+              <span class="user" id="total-pi">loading...</span>
+            </div>
+            <div class="donor-badge glow-tree">
+              <span class="rank">🌿 Total CO₂ Offset</span>
+              <span class="user" id="total-co2">loading...</span><span class="amount"> kg</span>
+            </div>
+            <div class="donor-badge glow-pi">
+              <span class="rank">🌳 Total Trees Planted</span>
+              <span class="user" id="total-trees">loading...</span>
+            </div>
+          </div>
+
+          <p>🌍 This page updates live with verified donations and tree planting data.<br />
+            A detailed impact table will follow soon.</p>
+
+          <a href="/forest/forest.html" class="back-button">← Back to Campaign</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <a href="/disclaimer.html">Disclaimer</a>
+    </div>
+  </div>
+
+  <script>
+    // Fetch totals from summary spreadsheet: cols[0]=label, cols[1]=value
+    fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQRuzHRLWY2DdkcHWBf3zVul0_xCWJh1OYmFF3HZX3TMuGxbEmqzekFzAuzVnRgGsFjZU6GFi-JMBq_/pub?gid=336990128&single=true&output=csv")
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.trim().split("\n").slice(1);
+        let totalPi = 0, totalCO2 = 0, totalTrees = 0;
+
+        rows.forEach(row => {
+          const cols = row.split(",");
+          const label = cols[0].toLowerCase();
+          const val = parseFloat(cols[1].replace(/[^\d.]/g, '')) || 0;
+
+          if (label.includes("pi")) totalPi = val;
+          if (label.includes("co")) totalCO2 = val;
+          if (label.includes("tree")) totalTrees = val;
+        });
+
+        document.getElementById("total-pi").textContent = totalPi.toFixed(1);
+        document.getElementById("total-co2").textContent = totalCO2.toFixed(0);
+        document.getElementById("total-trees").textContent = totalTrees;
+      })
+      .catch(err => console.error("Failed to load totals:", err));
+  </script>
+</body>
+</html>
