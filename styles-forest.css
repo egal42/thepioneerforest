@@ -1,0 +1,181 @@
+/* ======================================================
+   styles-forest.css
+   Only affects forest.html via body.home.forest scope
+====================================================== */
+
+body.home.forest a,
+body.home.forest a:link,
+body.home.forest a:visited,
+body.home.forest a:hover,
+body.home.forest a:active {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Intro spacing */
+body.home.forest .intro p {
+  margin-bottom: 0.9rem;
+}
+
+body.home.forest .intro .closing {
+  margin-top: 0.4rem;
+  color: var(--text-soft);
+}
+
+/* Branch list */
+body.home.forest .forest-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  margin-top: 1.8rem;
+  margin-bottom: 2.2rem; /* breathing room before footer */
+}
+
+/* Branch card */
+body.home.forest .forest-card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 1rem;
+  align-items: center;
+
+  padding: 1.15rem 1.25rem;
+  border-radius: 16px;
+
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,0.055);
+
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.06s ease;
+}
+
+body.home.forest .forest-card:hover {
+  background: rgba(255,255,255,0.055);
+  border-color: rgba(255,255,255,0.095);
+}
+
+body.home.forest .forest-card:active {
+  transform: translateY(1px);
+}
+
+/* Primary */
+body.home.forest .forest-card.primary {
+  background: rgba(111,191,156,0.10);
+  border-color: rgba(111,191,156,0.20);
+}
+
+/* Tile */
+body.home.forest .tile {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: transparent;
+
+  box-shadow:
+    0 10px 22px rgba(0,0,0,0.33),
+    0 0 18px rgba(111,191,156,0.10);
+}
+
+body.home.forest .tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72; /* base dim for TPF logos */
+  filter: saturate(0.96) contrast(0.98);
+}
+
+/* Text */
+body.home.forest .card-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+body.home.forest .card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+body.home.forest .card-title {
+  font-weight: 650;
+  letter-spacing: 0.2px;
+}
+
+body.home.forest .card-sub {
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+body.home.forest .card-arrow {
+  opacity: 0.65;
+}
+
+/* Badge */
+body.home.forest .badge {
+  font-size: 0.78rem;
+  color: rgba(231,243,236,0.80);
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.085);
+}
+
+/* Disabled */
+body.home.forest .forest-card.disabled {
+  opacity: 0.62;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  body.home.forest .forest-card {
+    grid-template-columns: 64px 1fr;
+    padding: 1.05rem 1.05rem;
+  }
+
+  body.home.forest .tile {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+  }
+
+  body.home.forest .forest-grid {
+    gap: 1rem;
+  }
+}
+
+/* ======================================================
+   Per-card icon tuning
+====================================================== */
+
+/* Elowen: subtle refinement */
+body.home.forest .tile.character-tile img {
+  object-fit: contain;
+  transform: scale(1.05);   /* slightly smaller */
+  opacity: 0.95;           /* tiny softness */
+  filter: contrast(0.98) saturate(0.96);
+}
+
+/* GoG: stronger presence */
+body.home.forest .tile.gog-tile {
+  width: 72px;
+  height: 72px;
+}
+
+body.home.forest .tile.gog-tile img {
+  object-fit: contain;
+  transform: scale(1.45);   /* MUCH bigger */
+  opacity: 0.95;
+  filter: brightness(0.9) saturate(1);
+}
+
+/* Witness: calm but present */
+body.home.forest .tile.witness-tile img {
+  object-fit: contain;
+  transform: scale(1.5);
+  opacity: 0.95;
+  filter: brightness(0.92) saturate(1);
+}

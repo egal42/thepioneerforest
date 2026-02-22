@@ -1,0 +1,84 @@
+/* ======================================================
+   Impact (v1.1) — subtle cosmic + count-up support
+======================================================*/
+
+.impact-panel {
+  margin-top: 1.6rem;
+  padding: 1.6rem;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  overflow: hidden;
+}
+
+/* Thin glowing accent line */
+.impact-panel::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 0;
+  height: 1px;
+  background: rgba(111,191,156,0.35);
+  box-shadow: 0 0 12px rgba(111,191,156,0.22);
+  opacity: 0.7;
+}
+
+/* Subtle cosmic bloom */
+.impact-panel::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(111,191,156,0.08), transparent 55%),
+    radial-gradient(circle at 80% 65%, rgba(255,255,255,0.04), transparent 60%);
+  opacity: 0.65;
+}
+
+.impact-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.1rem 0;
+}
+
+.impact-label {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  letter-spacing: 0.2px;
+}
+
+/* Reserve space so layout doesn't jump when numbers appear */
+.impact-value {
+  font-size: 1.95rem;
+  font-weight: 650;
+  letter-spacing: 0.4px;
+  min-height: 2.4rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.impact-value.visible {
+  opacity: 1;
+}
+
+.impact-divider {
+  position: relative;
+  z-index: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+.impact-source {
+  margin-top: 1.4rem;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  opacity: 0.85;
+}

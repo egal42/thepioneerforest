@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Impact – The Pioneer Forest</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/favicon/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/tpf-favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/tpf-favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/tpf-favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/tpf-favicon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon/tpf-favicon-512x512.png">
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles-impact.css" />
+</head>
+
+<body class="home">
+
+  <div class="bg-base" aria-hidden="true"></div>
+  <div class="bg-geometry" aria-hidden="true"></div>
+  <div class="bg-pulse" aria-hidden="true"></div>
+  <div class="bg-grain" aria-hidden="true"></div>
+
+  <main class="container">
+    <div class="anchor-line" aria-hidden="true"></div>
+
+    <header class="header">
+      <div class="brand">
+        <img src="assets/logo_tpf.png" alt="The Pioneer Forest logo" class="logo" />
+      </div>
+
+      <div class="title-block">
+        <div class="kicker">THE PIONEER FOREST</div>
+        <h1>Impact</h1>
+        <p class="subtitle">
+          A record of documented contributions and measured outcomes.
+        </p>
+      </div>
+    </header>
+
+    <section class="intro" aria-label="Recorded Totals">
+      <h2>Recorded Totals</h2>
+
+      <div class="impact-panel" role="group" aria-label="Totals">
+        <div class="impact-item">
+          <div class="impact-label">Total Pi Contributed</div>
+          <div class="impact-value" id="total-pi">Updating…</div>
+        </div>
+
+        <div class="impact-divider" aria-hidden="true"></div>
+
+        <div class="impact-item">
+          <div class="impact-label">Total CO₂ Offset</div>
+          <div class="impact-value" id="total-co2">Updating…</div>
+        </div>
+      </div>
+
+      <p class="impact-source">
+        Source: publicly documented contributions and verified planting records.
+      </p>
+    </section>
+
+    <nav class="paths" aria-label="Navigation">
+      <a class="primary" href="forest.html">
+        <span class="link-title">Enter the Forest</span>
+        <span class="link-hint">Campaigns & records →</span>
+      </a>
+
+      <a href="transparency.html">
+        <span class="link-title">Transparency &amp; Scope</span>
+        <span class="link-hint">Structure &amp; boundaries →</span>
+      </a>
+
+      <a href="index.html">
+        <span class="link-title">Return Home</span>
+        <span class="link-hint">The Pioneer Forest →</span>
+      </a>
+    </nav>
+
+    <footer class="footer">
+      <p class="footer-line">Built slowly. Grown in the open.</p>
+      <p class="footer-tag">Pi-powered reforestation.</p>
+    </footer>
+  </main>
+
+  <script>
+    const IMPACT_GID = 1443870873; // Impact Summary tab
+    const SPREADSHEET_ID = "17RDbOpsrq-4Uzn9LLvhgQSheYPyoeFWB0PyvRM1Lz4I";
+
+    const IMPACT_URL =
+      `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?gid=${IMPACT_GID}&tqx=out:json`;
+
+    function parseGViz(text) {
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+      return JSON.parse(text.substring(start, end + 1));
+    }
+
+    function formatNumberLocale(n, decimals = 0) {
+      return Number(n).toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function animateValue({ el, from, to, duration = 750, decimals = 0, suffix = "" }) {
+      if (!el) return;
+
+      el.classList.add("visible");
+
+      const start = performance.now();
+      const diff = to - from;
+
+      function tick(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const current = from + diff * t;
+        el.textContent = formatNumberLocale(current, decimals) + suffix;
+        if (t < 1) requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    function showAlarm(message) {
+      console.error("🚨 Impact Alarm:", message);
+
+      const alarm = document.createElement("div");
+      alarm.textContent = "⚠ Impact data unavailable";
+      alarm.style.color = "#ff6b6b";
+      alarm.style.marginTop = "10px";
+      alarm.style.fontSize = "0.9rem";
+
+      const panel = document.querySelector(".impact-panel");
+      if (panel) panel.appendChild(alarm);
+    }
+
+    async function loadImpactTotals() {
+      const piEl = document.getElementById("total-pi");
+      const co2El = document.getElementById("total-co2");
+
+      if (!piEl || !co2El) return;
+
+      piEl.textContent = "Updating…";
+      co2El.textContent = "Updating…";
+
+      try {
+        const res = await fetch(IMPACT_URL, { cache: "no-store" });
+
+        if (!res.ok) {
+          showAlarm("Network error: " + res.status);
+          return;
+        }
+
+        const text = await res.text();
+        const data = parseGViz(text);
+
+        const rows = data?.table?.rows;
+        if (!rows || !Array.isArray(rows)) {
+          showAlarm("Invalid GViz structure");
+          return;
+        }
+
+        let totalPi = null;
+        let totalCO2 = null;
+
+        rows.forEach(row => {
+          const rawLabel = row?.c?.[0]?.v;
+          const rawValue = row?.c?.[1]?.v;
+
+          if (rawLabel == null || rawValue == null) return;
+
+          const label = String(rawLabel).toLowerCase();
+          const value = Number(rawValue);
+
+          if (!Number.isFinite(value)) return;
+
+          if (label.includes("total pi")) totalPi = value;
+          if (label.includes("total co")) totalCO2 = value;
+        });
+
+        if (!Number.isFinite(totalPi) || !Number.isFinite(totalCO2)) {
+          showAlarm("Totals not found in sheet (gid mismatch?)");
+          piEl.textContent = "—";
+          co2El.textContent = "—";
+          return;
+        }
+
+        animateValue({
+          el: piEl,
+          from: totalPi * 0.95,
+          to: totalPi,
+          decimals: 0,
+          suffix: " Pi"
+        });
+
+        animateValue({
+          el: co2El,
+          from: totalCO2 * 0.95,
+          to: totalCO2,
+          decimals: 0,
+          suffix: " kg"
+        });
+
+      } catch (err) {
+        showAlarm("Fetch failed");
+        piEl.textContent = "—";
+        co2El.textContent = "—";
+      }
+    }
+
+    loadImpactTotals();
+  </script>
+
+</body>
+</html>
