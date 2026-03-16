@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Forest Hub – The Pioneer Forest</title>
 
-  <!-- Favicon (keep your structure) -->
+  <!-- Favicon -->
   <link rel="icon" href="assets/favicon/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/tpf-favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/tpf-favicon-16x16.png">
@@ -14,7 +14,6 @@
   <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/tpf-favicon-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon/tpf-favicon-512x512.png">
 
-  <!-- Base + Forest overrides -->
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="styles-forest.css" />
 </head>
@@ -53,7 +52,6 @@
       </p>
     </section>
 
-    <!-- Branches -->
     <section class="forest-grid" aria-label="Forest branches">
 
       <!-- 1) Ongoing / current -->
@@ -70,17 +68,17 @@
         </div>
       </a>
 
-      <!-- 2) Elowen (disabled until page exists) -->
-      <a class="forest-card disabled" href="#" aria-disabled="true" tabindex="-1">
+      <!-- 2) Elowen (ACTIVE BRANCH) -->
+      <a class="forest-card" href="elowen.html">
         <div class="tile character-tile">
           <img src="assets/img/elowen-icon-256.png" alt="" aria-hidden="true" />
         </div>
         <div class="card-body">
           <div class="card-top">
             <span class="card-title">Elowen</span>
-            <span class="badge">Soon</span>
+            <span class="card-arrow" aria-hidden="true">→</span>
           </div>
-          <div class="card-sub">Character branch. Editions &amp; shared artifacts.</div>
+          <div class="card-sub">A quiet presence. Editions &amp; shared artifacts.</div>
         </div>
       </a>
 
@@ -99,20 +97,20 @@
       </a>
 
       <!-- 4) Witness -->
-<a class="forest-card" href="transparency.html">
-  <div class="tile witness-tile">
-    <img src="assets/img/witness-icon-256.png" alt="" aria-hidden="true" />
-  </div>
-  <div class="card-body">
-    <div class="card-top">
-      <span class="card-title">The Witness</span>
-      <span class="card-arrow" aria-hidden="true">→</span>
-    </div>
-    <div class="card-sub">Transparency &amp; scope. What this is — and isn’t.</div>
-  </div>
-</a>
+      <a class="forest-card" href="transparency.html">
+        <div class="tile witness-tile">
+          <img src="assets/img/witness-icon-256.png" alt="" aria-hidden="true" />
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <span class="card-title">The Witness</span>
+            <span class="card-arrow" aria-hidden="true">→</span>
+          </div>
+          <div class="card-sub">Transparency &amp; scope. What this is — and isn’t.</div>
+        </div>
+      </a>
 
-      <!-- 5) Return Home (NOW INSIDE the grid -> spacing fixed) -->
+      <!-- 5) Return Home -->
       <a class="forest-card home-card" href="index.html">
         <div class="tile">
           <img src="assets/logo_tpf.png" alt="" aria-hidden="true" />
