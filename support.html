@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Support – The Pioneer Forest</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/favicon/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/tpf-favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/tpf-favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon/tpf-favicon-48x48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/tpf-favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/tpf-favicon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon/tpf-favicon-512x512.png">
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    .support-box {
+      margin: 1.5rem 0;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(210, 226, 212, 0.22);
+      border-radius: 14px;
+      background: rgba(12, 20, 16, 0.34);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .support-box.important {
+      border-color: rgba(164, 205, 168, 0.42);
+      background: rgba(16, 30, 21, 0.5);
+    }
+
+    .wallet-box {
+      position: relative;
+      padding-right: 4.5rem;
+    }
+
+    .support-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(214, 229, 215, 0.76);
+    }
+
+    .wallet-code,
+    .note-code {
+      display: block;
+      width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #edf5ee;
+    }
+
+    .note-code {
+      font-size: 1.08rem;
+      font-weight: 600;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      height: 38px;
+      padding: 0 0.75rem;
+      border: 1px solid rgba(214, 229, 215, 0.18);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #edf5ee;
+      font-size: 0.95rem;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(214, 229, 215, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .copy-btn:active {
+      transform: translateY(0);
+    }
+
+    .support-list {
+      margin: 0.8rem 0 0;
+      padding-left: 1.1rem;
+    }
+
+    .support-list li {
+      margin: 0.45rem 0;
+    }
+
+    .soft-note {
+      font-size: 0.96rem;
+      color: rgba(225, 234, 226, 0.82);
+    }
+  </style>
+</head>
+
+<body class="home">
+
+  <div class="bg-base" aria-hidden="true"></div>
+  <div class="bg-geometry" aria-hidden="true"></div>
+  <div class="bg-pulse" aria-hidden="true"></div>
+  <div class="bg-grain" aria-hidden="true"></div>
+
+  <main class="container">
+    <div class="anchor-line" aria-hidden="true"></div>
+
+    <header class="header">
+      <div class="brand">
+        <img src="assets/logo_tpf.png" alt="The Pioneer Forest logo" class="logo" />
+      </div>
+
+      <div class="title-block">
+        <div class="kicker">THE PIONEER FOREST</div>
+        <h1>How to Support</h1>
+        <p class="subtitle">
+          A clear path for contributions, attribution, and public record.
+        </p>
+      </div>
+    </header>
+
+    <section class="intro" aria-label="Overview">
+      <p>
+        The Pioneer Forest is a community-driven initiative within the Pi Network ecosystem.
+      </p>
+
+      <p>
+        Support for The Pioneer Forest funds documented reforestation impact
+        through independent planting and CO₂ offset projects.
+      </p>
+
+      <p>
+        Contributions are handled through the Pi ecosystem and recorded with
+        transparency through public updates and linked evidence where available.
+      </p>
+    </section>
+
+    <section class="intro" aria-label="Pi Browser">
+      <h2>Pi Browser</h2>
+
+      <p>
+        Full functionality for Pi wallet transactions and partner services is
+        available within the Pi Browser environment.
+      </p>
+    </section>
+
+    <section class="intro" aria-label="Official wallet">
+      <h2>Official Donation Wallet</h2>
+
+      <p>
+        Send Pi contributions to the official wallet of The Pioneer Forest:
+      </p>
+
+      <div class="support-box wallet-box" aria-label="Official wallet address">
+        <span class="support-label">The Pioneer Forest Wallet Address</span>
+        <code id="walletAddress" class="wallet-code">GDJQWS634MNY2XQ6FKOM6Z2PP5RQWEWLBNQICV43WI4IVWT3RC7VHD3M</code>
+
+        <button
+          class="copy-btn"
+          type="button"
+          onclick="copyWallet(this)"
+          aria-label="Copy wallet address"
+          title="Copy wallet address"
+        >
+          📋
+        </button>
+      </div>
+
+      <p class="soft-note">
+        Always verify the address using official The Pioneer Forest sources.
+      </p>
+
+      <p>
+        The official wallet address and current instructions are also
+        published on Fireside for verification:
+        <a href="https://fireside.pinet.com/posts/69c1c409409c5e003de95f6d"
+           target="_blank"
+           rel="noopener">
+          View official update →
+        </a>
+      </p>
+    </section>
+
+    <section class="intro" aria-label="Transaction note">
+      <h2>Transaction Note</h2>
+
+      <p>
+        If you want your contribution credited publicly, include your Pi username
+        in the note of the transaction.
+      </p>
+
+      <div class="support-box important" aria-label="Required note format">
+        <span class="support-label">Use This Format</span>
+        <code class="note-code">TPF YourPiUsername</code>
+      </div>
+
+      <p>
+        Use your Pi Network username exactly as shown in your account.
+      </p>
+
+      <p>
+        If the username is missing or unclear, the contribution will be handled
+        as anonymous and recorded as <strong>Arboris</strong>.
+      </p>
+    </section>
+
+    <section class="intro" aria-label="What happens next">
+      <h2>What Happens After Donation</h2>
+
+      <p>
+        Verified contributions are converted into documented reforestation impact,
+        such as tree planting and CO₂ offset activity.
+      </p>
+
+      <p>
+        The Pioneer Forest follows a baseline of
+        <strong>minimum 30 kg CO₂ offset per Pi contributed</strong>,
+        in line with the
+        <a href="https://fireside.pinet.com/posts/68c3f97757e8ee0040593b48"
+           target="_blank"
+           rel="noopener">
+          current public rule update
+        </a>.
+      </p>
+
+      <p>
+        Depending on project conditions, species, and availability,
+        actual outcomes may exceed this baseline.
+      </p>
+    </section>
+
+    <section class="intro" aria-label="Public record">
+      <h2>Public Record</h2>
+
+      <p>
+        Verified contributions are documented on the Fireside
+        <strong>#ThePioneerForest</strong> channel.
+      </p>
+
+      <p>
+        Posts may include attribution, transaction reference, certificate links,
+        tree links, or other supporting details where appropriate.
+      </p>
+
+      <ul class="support-list" aria-label="Attribution rules">
+        <li>Named contributions are credited to the provided Pi username.</li>
+        <li>Contributions without a clear username are recorded as <strong>Arboris</strong>.</li>
+        <li>Anonymous contributions are recorded without personal identifiers.</li>
+      </ul>
+
+      <p>
+        <a href="https://fireside.pinet.com/channels/ThePioneerForest"
+           target="_blank"
+           rel="noopener">
+          View The Pioneer Forest channel →
+        </a>
+      </p>
+    </section>
+
+    <section class="intro" aria-label="Verification">
+      <h2>Verification</h2>
+
+      <p>
+        Transactions can be checked on the
+        <a href="https://blockexplorer.minepi.com/mainnet/"
+           target="_blank"
+           rel="noopener">
+          Pi Block Explorer
+        </a>.
+      </p>
+
+      <p>
+        Reforestation activity is carried out through independent providers such as
+        <a href="https://tree-nation.com/profile/egal42"
+           target="_blank"
+           rel="noopener">
+          Tree-Nation
+        </a>.
+      </p>
+    </section>
+
+    <section class="intro" aria-label="Safety notice">
+      <h2>Safety Notice</h2>
+
+      <p>
+        Only use official links published on this website or on the verified
+        Fireside channel. The Pioneer Forest does not request donations through
+        unsolicited private messages.
+      </p>
+    </section>
+
+    <section class="intro" aria-label="Questions">
+      <h2>Questions</h2>
+
+      <p>
+        You can contact <strong>egal42</strong> through Pi Chats or through the
+        Fireside forum.
+      </p>
+
+      <p>
+        Response times may vary depending on availability and external commitments.
+      </p>
+    </section>
+
+    <nav class="paths" aria-label="Navigation">
+      <a class="primary" href="forest.html">
+        <span class="link-title">Enter the Forest</span>
+        <span class="link-hint">Campaigns &amp; records →</span>
+      </a>
+
+      <a href="impact.html">
+        <span class="link-title">See the Impact</span>
+        <span class="link-hint">Recorded totals →</span>
+      </a>
+
+      <a href="transparency.html">
+        <span class="link-title">Transparency &amp; Scope</span>
+        <span class="link-hint">Structure &amp; boundaries →</span>
+      </a>
+    </nav>
+
+    <footer class="footer">
+      <p class="footer-line">Every contribution becomes part of the forest.</p>
+      <p class="footer-tag">Pi-powered reforestation.</p>
+    </footer>
+
+  </main>
+
+  <script>
+    async function copyWallet(button) {
+      const text = document.getElementById("walletAddress").innerText.trim();
+      const original = button.innerHTML;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        button.innerHTML = "✓";
+        button.title = "Copied";
+        button.setAttribute("aria-label", "Wallet address copied");
+      } catch (err) {
+        button.innerHTML = "!";
+        button.title = "Copy failed";
+        button.setAttribute("aria-label", "Copy failed");
+      }
+
+      setTimeout(() => {
+        button.innerHTML = original;
+        button.title = "Copy wallet address";
+        button.setAttribute("aria-label", "Copy wallet address");
+      }, 1400);
+    }
+  </script>
+</body>
+</html>
