@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Pioneer Forest — Forest Quest</title>
+  <meta
+    name="description"
+    content="Enter The Pioneer Forest quest page, explore the signs, and continue to the OMC quest."
+  />
+
+  <!-- Favicon -->
+  <link rel="icon" href="./assets/favicon/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon/tpf-favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon/tpf-favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="./assets/favicon/tpf-favicon-48x48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/favicon/tpf-favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/favicon/tpf-favicon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./assets/favicon/tpf-favicon-512x512.png">
+
+  <link rel="stylesheet" href="./forest-quest/forest-quest.css" />
+</head>
+<body>
+  <main class="forest-quest-page">
+    <div class="forest-overlay"></div>
+
+    <header class="forest-topbar">
+      <div class="forest-brand">
+        <div class="forest-brand-mark">
+          <img src="./assets/logo_tpf.png" alt="The Pioneer Forest logo" />
+        </div>
+        <div class="forest-brand-text">
+          <small>The Pioneer Forest</small>
+          <strong>Forest Quest</strong>
+        </div>
+      </div>
+
+      <nav class="forest-top-links">
+        <a
+          class="chip-link"
+          href="https://www.ohmycompetitions.com/quests/pioneer-forest"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Go to OMC quest"
+        >Go to OMC</a>
+
+        <a
+          class="chip-link"
+          href="https://fireside.pinet.com/channels/ThePioneerForest"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open official The Pioneer Forest Fireside channel"
+        >Open Fireside</a>
+      </nav>
+    </header>
+
+    <section class="forest-layout">
+      <div class="zone-left">
+        <section class="zone zone-hero">
+          <div class="hero-card">
+            <span class="eyebrow">Entry point</span>
+            <h1>You arrive.<br>The path is <span class="accent">open.</span></h1>
+            <p>You are entering <strong>The Pioneer Forest</strong>.</p>
+            <p>This experience is part of the Pi ecosystem and works best in the Pi Browser for full functionality.</p>
+            <p class="small">Explore the signs, learn the basics, then continue the path.</p>
+
+            <div class="hero-actions">
+              <a
+                class="btn primary"
+                href="https://www.ohmycompetitions.com/quests/pioneer-forest"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Go to OMC</a>
+
+              <a
+                class="btn"
+                href="https://fireside.pinet.com/channels/ThePioneerForest"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Open Fireside</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="zone zone-sign-1">
+          <button class="sign-card" data-modal="intro" type="button">
+            <span class="sign-label">Sign 1</span>
+            <h2>What is<br>The Pioneer Forest?</h2>
+            <p>A growing forest built through real-world tree planting, CO₂ offset, and community support.</p>
+          </button>
+        </section>
+
+        <section class="zone zone-sign-2">
+          <button class="sign-card" data-modal="matters" type="button">
+            <span class="sign-label">Sign 2</span>
+            <h2>Why it matters</h2>
+            <p>Trees help reduce CO₂, support ecosystems, and improve environmental balance over time.</p>
+          </button>
+        </section>
+      </div>
+
+      <div class="zone-right">
+        <section class="zone zone-sign-3">
+          <button class="sign-card" data-modal="support" type="button">
+            <span class="sign-label">Sign 3</span>
+            <h2>How you can support</h2>
+            <p>Join the campaign on OMC inside the Pi Browser, or support The Pioneer Forest directly.</p>
+          </button>
+        </section>
+
+        <section class="zone zone-sign-4">
+          <button class="sign-card impact-card" data-modal="impact" type="button">
+            <span class="sign-label">Sign 4</span>
+            <h2>Impact</h2>
+            <p>1000 kg CO₂ offset, 6 trees, and full transparency through the official TPF Fireside channel.</p>
+          </button>
+        </section>
+      </div>
+    </section>
+
+    <div class="forest-footer-note">
+      This page is part of <strong>The Pioneer Forest</strong> inside the Pi ecosystem. Participation happens on OMC in the Pi Browser. Proof, updates, and certificates are shared through the official TPF Fireside channel.
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <div class="modal-backdrop" data-close="1"></div>
+
+    <div class="modal-panel">
+      <button class="modal-close" data-close="1" aria-label="Close popup" type="button">×</button>
+
+      <span class="modal-label" id="modal-label">Sign</span>
+      <h3 id="modal-title">Title</h3>
+      <div id="modal-body"></div>
+
+      <div class="modal-actions">
+        <a
+          class="btn primary"
+          href="https://www.ohmycompetitions.com/quests/pioneer-forest"
+          target="_blank"
+          rel="noopener noreferrer"
+          id="modal-main-link"
+        >Go to OMC</a>
+
+        <a
+          class="btn"
+          href="https://fireside.pinet.com/channels/ThePioneerForest"
+          target="_blank"
+          rel="noopener noreferrer"
+          id="modal-secondary-link"
+        >Open Fireside</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const content = {
+      intro: {
+        label: "Sign 1",
+        title: "What is The Pioneer Forest?",
+        body: `
+          <p><strong>The Pioneer Forest (TPF)</strong> is a growing forest supported by real-world tree planting.</p>
+          <p>Through community participation, trees are planted and CO₂ is offset over time.</p>
+          <p><strong>The Pioneer Forest</strong> connects digital action with real environmental impact — simple, transparent, and growing with every step.</p>
+        `
+      },
+      matters: {
+        label: "Sign 2",
+        title: "Why forests matter",
+        body: `
+          <p>Forests help absorb CO₂, support ecosystems, and protect biodiversity.</p>
+          <p>They improve environmental balance over time and create long-term impact beyond a single action.</p>
+          <p>Supporting forests means supporting a healthier planet — step by step.</p>
+        `
+      },
+      support: {
+        label: "Sign 3",
+        title: "How to take part",
+        body: `
+          <p>Take part in <strong>The Pioneer Forest</strong> through the daily quest on OMC.</p>
+          <p>For full functionality, use the Pi Browser within the Pi ecosystem.</p>
+          <p>You can also support <strong>The Pioneer Forest</strong> outside the quest and follow updates through the official Fireside channel.</p>
+        `
+      },
+      impact: {
+        label: "Sign 4",
+        title: "Real impact",
+        body: `
+          <p>This campaign supports real-world impact:</p>
+          <ul>
+            <li>1000 kg CO₂ offset</li>
+            <li>6 trees planted</li>
+            <li>Public updates and transparency</li>
+            <li>All progress and proof shared via the official Fireside channel of <strong>The Pioneer Forest</strong></li>
+          </ul>
+        `
+      }
+    };
+
+    const modal = document.getElementById("modal");
+    const modalLabel = document.getElementById("modal-label");
+    const modalTitle = document.getElementById("modal-title");
+    const modalBody = document.getElementById("modal-body");
+
+    document.querySelectorAll("[data-modal]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const key = button.getAttribute("data-modal");
+        const item = content[key];
+        modalLabel.textContent = item.label;
+        modalTitle.textContent = item.title;
+        modalBody.innerHTML = item.body;
+        modal.classList.add("open");
+      });
+    });
+
+    document.querySelectorAll("[data-close]").forEach((el) => {
+      el.addEventListener("click", () => {
+        modal.classList.remove("open");
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        modal.classList.remove("open");
+      }
+    });
+  </script>
+</body>
+</html>
