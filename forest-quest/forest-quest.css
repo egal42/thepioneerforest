@@ -113,10 +113,8 @@ img {
 }
 
 .forest-brand-mark img {
-  width: 24px;
-  height: 24px;
-  max-width: 24px;
-  max-height: 24px;
+  height: 34px;
+  width: auto;
   object-fit: contain;
 }
 
@@ -440,6 +438,43 @@ h1 {
   cursor: pointer;
 }
 
+.project-kicker {
+  margin: 10px 0 8px;
+}
+
+.image-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 12px;
+}
+
+.image-row img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.impact-project-block {
+  margin-top: 18px;
+}
+
+.impact-project-block p:first-child,
+.impact-project-block p:nth-child(2) {
+  margin-bottom: 8px;
+}
+
+.impact-project-image {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 10px 0 12px;
+  border-radius: 16px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.20);
+}
+
 @media (max-width: 1500px) {
   .zone-sign-1 {
     left: calc(50% - 520px);
@@ -667,5 +702,18 @@ h1 {
     padding: 10px 12px;
     border-radius: 16px;
     font-size: 12.5px;
+  }
+
+  .image-row {
+    gap: 8px;
+  }
+
+  .image-row img {
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+  }
+
+  .impact-project-image {
+    max-width: 100%;
   }
 }
