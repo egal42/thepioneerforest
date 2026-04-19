@@ -25,7 +25,7 @@
     <div class="forest-overlay"></div>
 
     <header class="forest-topbar">
-      <div class="forest-brand">
+      <a href="/" class="forest-brand">
         <div class="forest-brand-mark">
           <img src="./assets/logo_tpf.png" alt="The Pioneer Forest logo" />
         </div>
@@ -119,7 +119,10 @@
     </section>
 
     <div class="forest-footer-note">
-      This page is part of <strong>The Pioneer Forest</strong> inside the Pi ecosystem. Participation happens on OMC in the Pi Browser. Proof, updates, and certificates are shared through the official TPF Fireside channel.
+      This page is part of 
+<a href="/" target="_blank" rel="noopener noreferrer">
+  <strong>The Pioneer Forest</strong>
+</a> inside the Pi ecosystem. Participation happens on OMC in the Pi Browser. Proof, updates, and certificates are shared through the official TPF Fireside channel.
     </div>
   </main>
 
@@ -170,6 +173,14 @@
         body: `
           <p>Forests help absorb CO₂, support ecosystems, and protect biodiversity.</p>
           <p>They improve environmental balance over time and create long-term impact beyond a single action.</p>
+          <p class="project-kicker"><strong>Example project:</strong> Plant to Stop Poverty — Tanzania</p>
+
+          <div class="image-row">
+            <img src="forest-quest/images/img-measuring.png" alt="Project team measuring tree growth" />
+            <img src="forest-quest/images/img-tree-water.png" alt="Young tree planted and watered" />
+            <img src="forest-quest/images/img-kids.webp" alt="Children holding seedlings" />
+          </div>
+
           <p>Supporting forests means supporting a healthier planet — step by step.</p>
         `
       },
@@ -193,6 +204,19 @@
             <li>Public updates and transparency</li>
             <li>All progress and proof shared via the official Fireside channel of <strong>The Pioneer Forest</strong></li>
           </ul>
+
+          <div class="impact-project-block">
+            <p><strong>Example project supported by The Pioneer Forest</strong></p>
+            <p><strong>Forest Gardens — Simiyu Region, Tanzania</strong></p>
+
+            <img
+              src="forest-quest/images/project-forest-gardens-simiyu.png"
+              alt="Forest Gardens — Simiyu Region, Tanzania"
+              class="impact-project-image"
+            />
+
+            <p>Women are key drivers in this example project, supporting tree planting and stronger communities.</p>
+          </div>
         `
       }
     };
