@@ -100,6 +100,33 @@ body.forest .intro .closing {
     0 0 24px rgba(96, 177, 106, 0.10);
 }
 
+/* Forest Quest card */
+.card-quest {
+  border-color: rgba(120, 230, 170, 0.30);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015)),
+    rgba(18, 55, 32, 0.65);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 10px 30px rgba(0,0,0,0.16),
+    0 0 26px rgba(95, 215, 145, 0.10),
+    0 0 44px rgba(70, 190, 255, 0.045);
+}
+
+.card-quest:hover {
+  border-color: rgba(140, 235, 175, 0.42);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    rgba(20, 62, 36, 0.68);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 14px 36px rgba(0,0,0,0.19),
+    0 0 24px rgba(95, 220, 150, 0.18),
+    0 0 40px rgba(70, 190, 255, 0.08);
+}
+
 /* =========================
    Category hover accents
    ========================= */
@@ -250,9 +277,10 @@ body.forest .intro .closing {
 
 .card-forest .badge-round img,
 .card-action .badge-round img,
-.card-home .badge-round img {
-  width: 78px !important;
-  height: 78px !important;
+.card-home .badge-round img,
+.card-quest .badge-round img {
+  width: 72px !important;
+  height: 72px !important;
 }
 
 .badge-elowen img,
@@ -348,6 +376,34 @@ body.forest .intro .closing {
   opacity: 0.58;
 }
 
+
+.card-quest .badge-round::after {
+  background: radial-gradient(
+    circle,
+    rgba(138, 205, 110, 0.24) 0%,
+    rgba(95, 215, 255, 0.14) 38%,
+    rgba(138, 192, 110, 0) 76%
+  );
+  filter: blur(22px);
+  opacity: 0.98;
+}
+
+
+.card-quest .badge-round img {
+  filter:
+    drop-shadow(0 0 10px rgba(230, 197, 104, 0.18))
+    drop-shadow(0 0 20px rgba(110, 215, 145, 0.16))
+    drop-shadow(0 0 30px rgba(70, 190, 255, 0.10));
+}
+
+.forest-card.card-quest:hover .badge-round img {
+  transform: scale(1.06);
+  filter:
+    drop-shadow(0 0 12px rgba(236, 208, 130, 0.22))
+    drop-shadow(0 0 24px rgba(110, 220, 150, 0.22))
+    drop-shadow(0 0 36px rgba(70, 190, 255, 0.14));
+}
+
 /* =========================
    Narrative icons
    ========================= */
@@ -430,66 +486,32 @@ body.forest .intro .closing {
 }
 
 /* =========================
-   Mobile
+   
+
+/* =========================
+   QUEST STATES SYSTEM
    ========================= */
 
-@media (max-width: 720px) {
+/* OFF */
+.quest-off .card-quest {
+  display: none;
+}
 
-  .forest-card {
-    grid-template-columns: 86px 1fr;
-    gap: 1rem;
-    padding: 1rem;
-    border-radius: 18px;
-  }
+/* SOON */
+.quest-soon .card-quest {
+  opacity: 0.6;
+  pointer-events: none;
+}
 
-  .badge-shell {
-    width: 86px;
-    height: 86px;
-  }
+.quest-soon .card-quest .card-sub {
+  color: transparent;
+  position: relative;
+}
 
-  .badge-round {
-    width: 72px;
-    height: 72px;
-  }
-
-  .badge-round::before {
-    inset: 6px;
-  }
-
-  .badge-round::after {
-    inset: -6px;
-  }
-
-  .card-forest .badge-round img,
-  .card-action .badge-round img,
-  .card-home .badge-round img {
-    width: 58px !important;
-    height: 58px !important;
-  }
-
-  .badge-gog img,
-  .card-roots .badge-round img {
-    width: 60px !important;
-    height: 60px !important;
-  }
-
-  .badge-witness img,
-  .card-witness .badge-round img {
-    width: 58px !important;
-    height: 58px !important;
-  }
-
-  .badge-elowen img,
-  .card-spirit .badge-round img {
-    width: 66px !important;
-    height: 66px !important;
-  }
-
-  .card-title {
-    font-size: 1rem;
-  }
-
-  .card-sub {
-    font-size: 0.94rem;
-  }
+.quest-soon .card-quest .card-sub::after {
+  content: "Coming soon — a new path will open here.";
+  color: rgba(233, 239, 234, 0.75);
+  position: absolute;
+  left: 0;
+  top: 0;
 }

@@ -18,7 +18,24 @@
   <link rel="stylesheet" href="styles-forest.css" />
 </head>
 
+<!--
+=========================================
+QUEST STATE SWITCH
+
+ON (active)
 <body class="home forest">
+
+OFF (hidden)
+<body class="home forest quest-off">
+
+SOON (teaser)
+<body class="home forest quest-soon">
+
+Only change the BODY class.
+=========================================
+-->
+
+<body class="home forest quest-soon">
 
   <div class="bg-base" aria-hidden="true"></div>
   <div class="bg-geometry" aria-hidden="true"></div>
@@ -29,7 +46,7 @@
     <div class="anchor-line" aria-hidden="true"></div>
 
     <header class="header">
-      
+
       <div class="title-block">
         <div class="kicker">THE PIONEER FOREST</div>
         <h1>Forest Hub</h1>
@@ -49,6 +66,22 @@
     </section>
 
     <section class="forest-grid" aria-label="Forest branches">
+
+      <!-- Forest Quest -->
+      <a class="forest-card primary-card card-quest" href="forest-quest.html">
+        <div class="badge-shell">
+          <div class="badge-round">
+            <img src="assets/img/icon-quest.png" alt="" aria-hidden="true" />
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <span class="card-title">Forest Quest</span>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-sub">Active campaign — explore the signs, answer the daily question, and follow the growing impact.</div>
+        </div>
+      </a>
 
       <!-- The Ongoing Forest -->
       <a class="forest-card primary-card card-forest" href="impact.html">
