@@ -451,8 +451,9 @@ h1 {
 
 .image-row img {
   width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
   border-radius: 12px;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
 }
@@ -707,9 +708,10 @@ h1 {
   .image-row {
     gap: 8px;
   }
-
   .image-row img {
-    aspect-ratio: 1 / 1;
+    height: auto;
+    aspect-ratio: auto;
+    object-fit: contain;
     border-radius: 10px;
   }
 

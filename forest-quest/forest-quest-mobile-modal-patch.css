@@ -1,6 +1,11 @@
 /* =========================================
    Forest Quest — Mobile Modal + Media Patch
    Add AFTER forest-quest.css
+   Current purpose:
+   - keep modal scrollable on mobile
+   - preserve original image ratios
+   - avoid cropped heads/faces
+   - keep Sign 4 readable without cutting content
    ========================================= */
 
 /* Make all modal media safe by default */
@@ -10,21 +15,39 @@
   display: block;
 }
 
-/* Improve image rows inside modal */
+/* Desktop/modal image row: keep three images, preserve real ratios */
 .image-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0;
+  align-items: start;
 }
 
 .image-row img {
   width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center center;
   border-radius: 14px;
   border: 1px solid rgba(232, 242, 228, 0.12);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+/* Sign 4 image: preserve original landscape ratio */
+.impact-project-image {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 16px;
+  margin: 12px 0;
+  border: 1px solid rgba(232, 242, 228, 0.12);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
 }
 
 .impact-project-block {
@@ -33,49 +56,36 @@
   border-top: 1px solid rgba(232, 242, 228, 0.14);
 }
 
-.impact-project-image {
-  width: 100%;
-  max-height: 320px;
-  object-fit: cover;
-  border-radius: 16px;
-  margin: 12px 0;
-  border: 1px solid rgba(232, 242, 228, 0.12);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.26);
-}
-
 .project-kicker {
   color: var(--text);
 }
 
-/* Desktop/modal safety: prevent very tall modals from escaping viewport */
+/* Desktop/modal safety */
 .modal-panel {
   max-height: calc(100vh - 96px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-/* Cleaner modal scrollbar where supported */
 .modal-panel::-webkit-scrollbar {
   width: 8px;
 }
 
 .modal-panel::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 999px;
 }
 
 .modal-panel::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 999px;
 }
 
-/* =========================================
-   Mobile: fix Sign 4 cut-off and readability
-   ========================================= */
-
+/* Mobile: stack images, keep original ratios, no cropping */
 @media (max-width: 768px) {
   .modal {
     padding: 12px;
+    overflow-y: auto;
   }
 
   .modal-panel {
@@ -84,6 +94,7 @@
     margin: 0 auto;
     padding: 20px 16px 18px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 22px;
   }
 
@@ -114,18 +125,28 @@
 
   .image-row {
     grid-template-columns: 1fr;
-    gap: 9px;
+    gap: 10px;
+    margin: 12px 0;
   }
 
   .image-row img {
-    max-height: 160px;
-    aspect-ratio: 16 / 9;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: contain;
+    object-position: center center;
+    border-radius: 12px;
   }
 
   .impact-project-image {
-    max-height: 210px;
-    object-fit: cover;
-    object-position: center 38%;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: contain;
+    object-position: center center;
     margin: 10px 0 12px;
   }
 
@@ -163,11 +184,15 @@
     font-size: 27px;
   }
 
-  .impact-project-image {
-    max-height: 185px;
+  .modal-actions {
+    margin-left: -14px;
+    margin-right: -14px;
+    padding-left: 14px;
+    padding-right: 14px;
   }
 
-  .image-row img {
-    max-height: 140px;
+  .modal-actions .btn {
+    flex: 1 1 100%;
+    justify-content: center;
   }
 }
