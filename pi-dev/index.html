@@ -72,9 +72,30 @@
       transform: translateY(-2px);
       opacity: 0.95;
     }
+
+    #status {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-top: 1.2rem;
+      margin-bottom: 0;
+      word-break: break-word;
+    }
   </style>
 
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+  <script>
+    try {
+      if (window.Pi) {
+        window.Pi.init({
+          version: "2.0",
+          sandbox: true
+        });
+      }
+    } catch (error) {
+      console.error("Pi init error:", error);
+    }
+  </script>
 </head>
 
 <body>
@@ -93,7 +114,7 @@
 
     <div class="buttons">
 
-      <a href="#" class="primary" id="loginBtn" onclick="alert('CLICK WORKS'); return false;">
+      <a href="#" class="primary" id="loginBtn">
         Enter with Pi Login
       </a>
 
@@ -107,11 +128,58 @@
 
     </div>
 
+    <p id="status">
+      Waiting for Pi login test.
+    </p>
+
     <p style="font-size:0.8rem; opacity:0.55; margin-top:2rem; margin-bottom:0;">
       Development preview — Testnet phase
     </p>
 
   </div>
+
+  <script>
+    const loginBtn = document.getElementById("loginBtn");
+    const statusEl = document.getElementById("status");
+
+    loginBtn.addEventListener("click", async function(event) {
+      event.preventDefault();
+
+      alert("CLICK WORKS");
+
+      statusEl.textContent = "Button clicked. Checking Pi SDK...";
+
+      try {
+        if (!window.Pi) {
+          statusEl.textContent = "Pi SDK not available. Open inside Pi Browser / Pi Sandbox.";
+          alert("Pi SDK not available. Open inside Pi Browser / Pi Sandbox.");
+          return;
+        }
+
+        statusEl.textContent = "Pi SDK found. Starting authentication...";
+
+        const auth = await window.Pi.authenticate(
+          ["username"],
+          function onIncompletePaymentFound(payment) {
+            console.log("Incomplete payment found:", payment);
+          }
+        );
+
+        console.log("Authentication successful:", auth);
+
+        statusEl.textContent = "Logged in as: " + auth.user.username;
+
+        alert("Welcome " + auth.user.username);
+
+      } catch (error) {
+        console.error("Pi login error:", error);
+
+        statusEl.textContent = "Pi login failed or was cancelled.";
+
+        alert("Pi login failed or was cancelled.");
+      }
+    });
+  </script>
 
 </body>
 </html>
