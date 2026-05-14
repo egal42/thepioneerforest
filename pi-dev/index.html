@@ -93,7 +93,7 @@
 
     <div class="buttons">
 
-      <a href="#" class="primary" id="loginBtn">
+      <a href="#" class="primary" id="loginBtn" onclick="alert('CLICK WORKS'); return false;">
         Enter with Pi Login
       </a>
 
@@ -112,45 +112,6 @@
     </p>
 
   </div>
-
-  <script>
-    const loginBtn = document.getElementById("loginBtn");
-
-    loginBtn.addEventListener("click", async (event) => {
-      event.preventDefault();
-
-      try {
-
-        if (!window.Pi) {
-          alert("Pi SDK not available. Please open this page inside Pi Browser or Pi Sandbox.");
-          return;
-        }
-
-        await window.Pi.init({
-          version: "2.0",
-          sandbox: true
-        });
-
-        const auth = await window.Pi.authenticate(
-          ["username"],
-          function onIncompletePaymentFound(payment) {
-            console.log("Incomplete payment found:", payment);
-          }
-        );
-
-        console.log("Authentication successful:", auth);
-
-        alert("Welcome " + auth.user.username);
-
-      } catch (error) {
-
-        console.error("Pi login error:", error);
-
-        alert("Pi login failed or was cancelled.");
-
-      }
-    });
-  </script>
 
 </body>
 </html>
