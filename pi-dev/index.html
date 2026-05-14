@@ -73,7 +73,10 @@
       opacity: 0.95;
     }
   </style>
+
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
+
 <body>
 
   <div class="card">
@@ -89,6 +92,7 @@
     </p>
 
     <div class="buttons">
+
       <a href="#" class="primary" id="loginBtn">
         Enter with Pi Login
       </a>
@@ -100,43 +104,50 @@
       <a href="https://fireside.pinet.com/channels/ThePioneerForest" class="secondary">
         TPF Fireside Updates
       </a>
+
     </div>
 
     <p style="font-size:0.8rem; opacity:0.55; margin-top:2rem; margin-bottom:0;">
       Development preview — Testnet phase
     </p>
+
   </div>
 
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-
   <script>
-    Pi.init({
-      version: "2.0",
-      sandbox: true
-    });
-
     const loginBtn = document.getElementById("loginBtn");
 
     loginBtn.addEventListener("click", async (event) => {
       event.preventDefault();
 
       try {
-        const scopes = ["username"];
 
-        function onIncompletePaymentFound(payment) {
-          console.log("Incomplete payment found:", payment);
+        if (!window.Pi) {
+          alert("Pi SDK not available. Please open this page inside Pi Browser or Pi Sandbox.");
+          return;
         }
 
-        const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+        await window.Pi.init({
+          version: "2.0",
+          sandbox: true
+        });
 
-        console.log("Authentication successful");
-        console.log(auth);
+        const auth = await window.Pi.authenticate(
+          ["username"],
+          function onIncompletePaymentFound(payment) {
+            console.log("Incomplete payment found:", payment);
+          }
+        );
+
+        console.log("Authentication successful:", auth);
 
         alert("Welcome " + auth.user.username);
 
       } catch (error) {
-        console.error(error);
+
+        console.error("Pi login error:", error);
+
         alert("Pi login failed or was cancelled.");
+
       }
     });
   </script>
