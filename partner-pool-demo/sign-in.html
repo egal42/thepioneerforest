@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GreenSpark — Partner Sign-in Demo</title>
+<style>
+:root{--bg:#160d24;--panel:#211331;--text:#fff9f1;--muted:#bcaec9;--violet:#9c5cff;--pink:#ff5c8a;--gold:#ffbd59;--green:#57d68d}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at 12% 0,#3b1b5d 0,transparent 34%),radial-gradient(circle at 92% 8%,#542039 0,transparent 27%),var(--bg);color:var(--text)}
+.wrap{max-width:1080px;margin:auto;padding:0 24px}
+header{border-bottom:1px solid #ffffff18;background:#12091dbd}
+.head{min-height:92px;display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:13px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--violet),var(--pink) 55%,var(--gold));display:grid;place-items:center;font-size:25px}
+.brand b{font-size:20px}.brand small{display:block;color:var(--muted);margin-top:4px}
+.tpf{padding-left:28px;border-left:1px solid #ffffff22;font-size:12px}.tpf b{letter-spacing:.14em}.tpf div{margin-top:4px;color:var(--muted)}
+main{min-height:calc(100vh - 93px);display:grid;place-items:center;padding:55px 24px}
+.card{width:min(460px,100%);background:linear-gradient(180deg,#ffffff0d,#ffffff07);border:1px solid #ffffff1d;border-radius:24px;padding:30px;box-shadow:0 22px 70px #0005}
+.lock{width:54px;height:54px;border-radius:16px;background:#ffffff0b;border:1px solid #ffffff18;display:grid;place-items:center;font-size:25px;margin-bottom:20px}
+.kicker{color:var(--gold);font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:30px;margin:9px 0 8px}p{color:var(--muted);line-height:1.55;margin:0 0 24px}
+label{display:block;font-size:12px;font-weight:800;margin:15px 0 7px}
+input{width:100%;padding:13px 14px;border-radius:11px;border:1px solid #ffffff22;background:#100919;color:var(--text);font:inherit;outline:none}
+input:focus{border-color:#ffbd5988}
+button{width:100%;margin-top:20px;padding:13px;border:0;border-radius:11px;background:linear-gradient(135deg,#7840cc,#a94070);color:white;font:inherit;font-weight:900;cursor:pointer}
+.demo{margin-top:17px;padding:12px 14px;border-radius:12px;background:#ffbd590b;border:1px solid #ffbd5930;color:#d9cce2;font-size:12px;line-height:1.55}
+.public{display:block;text-align:center;margin-top:18px;color:var(--gold);text-decoration:none;font-size:12px;font-weight:800}
+.error{display:none;color:#ff9aaa;font-size:12px;margin-top:10px}
+@media(max-width:600px){.head{display:block;padding:15px 0}.tpf{padding:8px 0 0 59px;border:0}.card{padding:24px}}
+.demo-proof{font:inherit;cursor:pointer}
+
+.gs-logo{display:block;height:auto}.gs-logo-hero{width:min(390px,78vw);margin:0 auto 22px}.gs-logo-head{width:230px;margin:0 0 10px}@media(max-width:650px){.gs-logo-head{width:190px}.gs-logo-hero{width:min(330px,84vw)}}
+
+/* Clear but restrained demo identity */
+.demo-version-badge{
+ display:inline-flex;align-items:center;gap:7px;
+ padding:6px 10px;border:1px solid rgba(255,189,89,.52);
+ border-radius:999px;background:rgba(255,189,89,.08);
+ color:#ffd071;font-size:10px;font-weight:900;letter-spacing:.13em;
+ text-transform:uppercase;white-space:nowrap
+}
+.demo-version-badge::before{
+ content:"";width:6px;height:6px;border-radius:50%;background:#ffbd59;
+ box-shadow:0 0 10px rgba(255,189,89,.45)
+}
+.demo-version-note{color:#bcaec9;font-size:11px;margin-top:7px}
+
+
+/* Unified partner header: compact on desktop and mobile */
+.clean-partner-header{
+ background:#120a20;
+ border-bottom:1px solid rgba(255,255,255,.07);
+}
+.clean-partner-header .clean-head{
+ max-width:1060px;margin:0 auto;padding:18px 20px;
+ display:flex;align-items:center;justify-content:space-between;gap:28px;
+}
+.clean-brand{display:flex;align-items:center;gap:16px;min-width:0}
+.clean-brand img{display:block;width:235px;max-width:44vw;height:auto;margin:0}
+.clean-demo{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.clean-tpf{
+ border-left:1px solid rgba(255,255,255,.15);
+ padding-left:28px;min-width:220px;
+}
+.clean-tpf b{display:block;font-size:11px;letter-spacing:.16em;color:#fff}
+.clean-tpf span{display:block;margin-top:5px;font-size:12px;color:#e7dff0}
+.clean-tpf em{font-style:normal;color:#ffbd59}
+@media(max-width:650px){
+ .clean-partner-header .clean-head{
+   padding:14px 18px;display:block;
+ }
+ .clean-brand{justify-content:space-between;gap:10px}
+ .clean-brand img{width:185px;max-width:58vw}
+ .clean-demo .demo-version-badge{padding:5px 8px;font-size:9px}
+ .clean-tpf{
+   border-left:0;border-top:1px solid rgba(255,255,255,.11);
+   padding:10px 0 0;margin-top:11px;min-width:0;
+   display:flex;align-items:baseline;gap:8px;
+ }
+ .clean-tpf b{font-size:9px}
+ .clean-tpf span{margin:0;font-size:10px}
+}
+
+
+.signin-demo-note{margin:8px 0 18px;color:#bcaec9;font-size:12px}
+</style>
+
+<style>
+body::after{
+ content:"DEMO VERSION";position:fixed;right:22px;bottom:18px;z-index:9000;
+ font-size:10px;font-weight:900;letter-spacing:.18em;color:#ffffff32;
+ pointer-events:none
+}
+.demo-switch::before{
+ content:"DEMO NAVIGATION";grid-column:1/-1;color:#bcaec9;font-size:9px;
+ font-weight:900;letter-spacing:.15em;margin:0 0 -4px 3px
+}
+</style>
+
+</head>
+<body>
+<header class="clean-partner-header">
+ <div class="clean-head">
+  <div class="clean-brand">
+   <img src="assets/greenspark-logo.svg" alt="GreenSpark logo">
+   <div class="clean-demo"><span class="demo-version-badge">Demo Version</span></div>
+  </div>
+  <div class="clean-tpf">
+   <b>THE PIONEER FOREST</b>
+   <span>Partner Pool <em>Demo</em></span>
+  </div>
+ </div>
+</header>
+
+
+<main>
+<section class="card">
+<div class="lock">🔒</div>
+<div class="kicker">Pool Management sign-in</div>
+<div class="signin-demo-note">Demo access only · no real partner account</div>
+<h1>GreenSpark Pool Management</h1>
+<p>GreenSpark signs in here to manage its Partner Pools and give environmental rewards to Pioneers.</p>
+<form id="login">
+<label for="user">Partner</label>
+<input id="user" autocomplete="username" value="GreenSpark">
+<label for="pass">Password</label>
+<input id="pass" type="password" autocomplete="current-password" value="greenspark" aria-label="Demo password">
+<div class="error" id="error">For this demo, use password: <b>greenspark</b></div>
+<button type="submit">OPEN POOL MANAGEMENT →</button>
+</form>
+<div class="demo"><b>Demo login:</b> password <b>greenspark</b><br>Demo only. The real Pool Management area will be password-protected; this static page only simulates that sign-in.</div>
+<a class="public" href="index.html">← View GreenSpark's public page instead</a>
+</section>
+</main>
+<script>
+document.getElementById('login').addEventListener('submit',function(e){
+ e.preventDefault();
+ const pass=document.getElementById('pass').value;
+ if(pass==='greenspark'){
+   sessionStorage.setItem('greensparkPartnerAccess','yes');
+   window.location.href='partner-area.html';
+ }else{
+   document.getElementById('error').style.display='block';
+ }
+});
+</script>
+</body></html>
