@@ -178,3 +178,5 @@ body>header.public-header{padding:8px max(22px,calc((100vw - 1100px)/2));gap:25p
 /* Review corrections: vertically centred actions and aligned explanation columns. */
 .button-link{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;vertical-align:middle}.proof-actions .button-link{display:inline-flex}.explain-grid{align-items:stretch}.explain-grid>.panel{margin:0}.explain-grid>.panel h2{margin-top:10px}.explain-grid>div:not(.panel){display:flex;flex-direction:column;gap:10px}.explain-grid .step{margin:0;flex:1}
 .public-overview .pool-card .proof-actions .button-link{display:inline-flex;align-items:center;justify-content:center}
+
+.public-card-preview{padding:0!important;background:transparent;border:0!important;box-shadow:none}.public-record>.main .eyebrow{display:block}.public-record #content>.eyebrow{display:block;margin-top:22px}.public-record .pool-back{display:block}#reward-tools{scroll-margin-top:24px}#reward-tools canvas{margin:12px 0}#reward-tools .template-btn{min-height:40px}#reward-tools .reward-output pre{white-space:pre-wrap;overflow-wrap:anywhere}

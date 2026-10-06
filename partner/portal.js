@@ -88,7 +88,7 @@ async function refresh() {
           event.preventDefault(); button.disabled = true; pendingKey ||= crypto.randomUUID();
           try {
             const result = await api('share', {poolId:pool.id,pioneerName:pioneer.value.trim(),units:amount.value,reason:reason.value.trim(),idempotencyKey:pendingKey});
-            pendingKey = null; location.href = `/p/${data.profile.id}/records/${encodeURIComponent(result.share.id)}`;
+            pendingKey = null; location.href = `/partner/?pool=${encodeURIComponent(pool.id)}&reward=${encodeURIComponent(result.share.id)}`;
           } catch (error) { message(error.message,true); button.disabled = false; }
         }); reward.append(form);
       } else item(reward, available <= 0 ? 'This pool is fully shared. Choose another pool to continue.' : 'Sharing opens after TPF publishes the verified public page.');
@@ -131,10 +131,22 @@ async function refresh() {
     for (const share of data.shares || []) {
       const row = document.createElement('div'); row.className = 'pool';
       item(row, `${share.pioneer_name} · ${number(share.units)} ${share.basis === 'trees' ? 'trees' : 'kg CO₂'} · ${new Date(share.created_at).toLocaleString()}`);
-      const a = document.createElement('a'); a.href = `/p/${data.profile.id}/records/${encodeURIComponent(share.id)}`;
+      const a = document.createElement('a'); a.href = `/partner/?pool=${encodeURIComponent(share.pool_id)}&reward=${encodeURIComponent(share.id)}`;
       if (share.reason) item(row, `For: ${share.reason}`);
       addLink(row, 'View pool record', publicPool(share.pool_id)).className = 'button-link';
-      a.textContent = 'View record & share'; a.className = 'button-link'; row.append(a); $('rewards').append(row);
+      a.textContent = 'Card & sharing tools'; a.className = 'button-link'; row.append(a); $('rewards').append(row);
+    }
+    const rewardId = new URL(location.href).searchParams.get('reward');
+    $('reward-tools').hidden = !rewardId; $('reward-tools').replaceChildren();
+    if (rewardId) {
+      const saved = data.shares.find(s => s.id === rewardId);
+      const pool = saved && data.pools.find(p => p.id === saved.pool_id);
+      if (!saved || !pool) { item($('reward-tools'),'This reward is not available in your workspace.'); }
+      else {
+        const { renderRewardTools } = await import('/partner/reward.js');
+        await renderRewardTools($('reward-tools'),data.profile,{...saved,pool_name:poolName(pool),proof_urls:pool.proof_urls || []});
+      }
+      $('reward-tools').scrollIntoView({block:'start'});
     }
   } catch (error) {
     $('workspace').hidden = true; $('signin').hidden = false; $('workspace-nav').hidden = true; $('footer').hidden = true;

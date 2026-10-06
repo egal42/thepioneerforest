@@ -20,35 +20,10 @@ const poolName = pool => partnerId === 'omc' && (pool.pool_id || pool.id) === 'p
 const units = (value, basis) => `${number(value)} ${basis === 'trees' ? 'trees' : 'kg CO₂'}`;
 async function shareCard(profile, record) {
   const { drawShareCard } = await import('/public-partner/card.js');
-  const panel = card(); panel.classList.add('share-panel');
-  text(panel, 'h2', 'Share this reward');
-  text(panel, 'p', 'Choose a card, download it, or copy the reward text and public link.');
-  const tree = document.createElement('button'); tree.textContent = 'Tree'; tree.className = 'template-btn';
-  const planet = document.createElement('button'); planet.textContent = 'Planet'; planet.className = 'template-btn';
-  const download = document.createElement('button'); download.textContent = 'Download share card';
-  const canvas = document.createElement('canvas'); canvas.style.cssText = 'display:block;width:min(100%,520px);margin:20px 0;border-radius:14px';
-  const copy = document.createElement('button'); copy.textContent = 'Copy post text';
-  const copyLink = document.createElement('button'); copyLink.textContent = 'Copy public record link';
-  const templates = document.createElement('div'); templates.className = 'action-row'; templates.append(tree,planet);
-  const actions = document.createElement('div'); actions.className = 'action-row'; actions.append(download,copy,copyLink);
-  panel.append(templates,canvas,actions);
-  let template = record.basis === 'trees' ? 'tree' : 'planet';
-  async function render() { tree.classList.toggle('on',template === 'tree'); planet.classList.toggle('on',template === 'planet'); await drawShareCard(canvas, profile, record, template); }
-  tree.addEventListener('click', () => { template = 'tree'; render(); });
-  planet.addEventListener('click', () => { template = 'planet'; render(); });
-  download.addEventListener('click', () => {
-    const a = document.createElement('a'); a.href = canvas.toDataURL('image/png');
-    a.download = `${record.id}-${template}.png`; a.click();
-  });
-  copy.addEventListener('click', async () => {
-    const proof = (record.proof_urls || []).map(url => `Planting proof: ${url}`).join('\n');
-    await navigator.clipboard.writeText(`${profile.name} shared ${units(record.units, record.basis)} with ${record.pioneer_name} through The Pioneer Forest.\nPool: ${record.pool_name}${record.reason ? `\nFor: ${record.reason}` : ''}\nPublic record: ${location.href}${proof ? `\n${proof}` : ''}`);
-    copy.textContent = 'Copied';
-  });
-  copyLink.addEventListener('click', async () => {
-    await navigator.clipboard.writeText(location.href); copyLink.textContent = 'Copied';
-  });
-  await render();
+  const panel = card(); panel.classList.add('share-panel','public-card-preview');
+  const canvas = document.createElement('canvas'); canvas.setAttribute('aria-label',`${units(record.units,record.basis)} shared with ${record.pioneer_name}`);
+  canvas.style.cssText='display:block;width:100%;border-radius:14px'; panel.append(canvas);
+  await drawShareCard(canvas,profile,record,record.basis === 'trees' ? 'tree' : 'planet');
 }
 async function load() {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(partnerId || '')) throw new Error('Partner page not found');

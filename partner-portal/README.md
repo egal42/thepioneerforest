@@ -111,3 +111,12 @@ an explicit Admin banner. Every opening retrieves online data; errors never fall
 back to local balances. Available offers do not establish that a partner has read
 one. Requires installing `operations-center-connector/workspace-update` over the
 6 October Portal Update; checksums stop on a different code version.
+
+### Public record / private sharing separation
+
+Public records show a passive saved reward card and proof/details only. Tree/Planet
+selection, downloads, copy details/post/link live in the authenticated Portal's
+`?reward=<saved id>` panel, reachable after recording and from reward history.
+These tools operate on an existing record and do not allocate again. Copied links
+point to the public record, not the private workspace. The read-only Admin package
+remains observation-only; its public record links do not provide sharing controls.

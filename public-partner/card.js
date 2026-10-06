@@ -39,7 +39,7 @@ export async function drawShareCard(canvas, profile, record, template) {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#f5fbf4'; ctx.font = '900 25px Arial, sans-serif';
   ctx.fillText('COMMUNITY REWARD', 540, 350);
-  const amount = String(record.units);
+  const amount = Number(record.units).toLocaleString('en-US',{maximumFractionDigits:3});
   ctx.font = `900 ${fitted(ctx, amount, 650, 120, 62)}px Arial, sans-serif`;
   ctx.shadowColor = accent; ctx.shadowBlur = 22; ctx.fillText(amount, 540, 465); ctx.shadowBlur = 0;
   ctx.fillStyle = accent; ctx.font = '900 48px Arial, sans-serif';
@@ -50,7 +50,8 @@ export async function drawShareCard(canvas, profile, record, template) {
   ctx.fillText(pioneer, 540, 646);
   if (record.reason) {
     ctx.font = `25px Arial, sans-serif`;
-    ctx.fillText(('For: ' + record.reason).slice(0, 55), 540, 718);
+    ctx.font = ` ${fitted(ctx, 'For: ' + record.reason, 820, 25, 16)}px Arial, sans-serif`;
+    ctx.fillText('For: ' + record.reason, 540, 718, 820);
   }
   ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.strokeRect(190, 790, 700, 68);
   ctx.font = `700 ${fitted(ctx, 'Pool: ' + record.pool_name, 650, 25, 18)}px Arial, sans-serif`;
