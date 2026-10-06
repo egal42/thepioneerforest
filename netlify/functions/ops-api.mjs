@@ -1,3 +1,4 @@
+import { readPartnerWorkspace } from '../../partner-portal/workspace.mjs';
 import { getDatabase } from '@netlify/database';
 import { getStore } from '@netlify/blobs';
 import { randomBytes } from 'node:crypto';
@@ -17,6 +18,13 @@ export default async function handler(request) {
 
   try {
     const db = getDatabase();
+    if (action === 'workspace' && request.method === 'GET') {
+      const partnerId = url.searchParams.get('partnerId');
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(partnerId || '')) return reply({error:'Invalid partner'},400);
+      const data = await readPartnerWorkspace(db, partnerId);
+      if (!data.profile) return reply({error:'Partner not found'},404);
+      return reply({...data, readOnly:true, retrievedAt:new Date().toISOString()});
+    }
     if (action === 'invite' && request.method === 'POST') {
       let partnerId;
       try { partnerId = JSON.parse(body).partnerId; } catch { return reply({ error: 'Invalid request' }, 400); }

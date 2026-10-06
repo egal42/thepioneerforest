@@ -99,3 +99,15 @@ accent. No data is created or modified by this design port.
 Public deployed pages can be visually checked. The authenticated private workspace
 and populated online reward/share-card states still require a test session; the
 isolated DOM checks do not replace that visual acceptance check.
+
+### Read-only Operations Center workspace
+
+`GET /api/ops/workspace?partnerId=...` uses the existing signed Operations Center
+connection and exactly the same projection as `/api/partner/me`. It does not mint
+sessions or expose credentials. The response is no-store and includes its retrieval
+time. It has no POST/write action. The Windows update package adds a partner-detail
+button and a local GET-only view with bundled Portal styles, disabled controls and
+an explicit Admin banner. Every opening retrieves online data; errors never fall
+back to local balances. Available offers do not establish that a partner has read
+one. Requires installing `operations-center-connector/workspace-update` over the
+6 October Portal Update; checksums stop on a different code version.

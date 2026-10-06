@@ -40,6 +40,14 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
   const login=await call(partner,'/api/partner/login',{partnerId:'test-a',password:'only-for-isolated-tests-123'});assert.equal(login.status,200);const cookie=login.cookie;
   assert.equal((await call(partner,'/api/partner/me')).status,401);
   const me=await call(partner,'/api/partner/me',undefined,cookie);assert.equal(me.body.pools.length,2);assert.equal(me.body.pools[0].planted_trees,2);
+  const adminView=await call(ops,'/api/ops/workspace?partnerId=test-a',undefined,'',true);
+  assert.equal(adminView.status,200);assert.equal(adminView.body.readOnly,true);
+  const {readOnly,retrievedAt,...snapshot}=adminView.body;assert.deepEqual(snapshot,me.body);
+  assert.equal((await call(ops,'/api/ops/workspace?partnerId=test-a')).status,401);
+  assert.equal((await call(ops,'/api/ops/workspace?partnerId=bad_id',undefined,'',true)).status,400);
+  assert.equal((await call(ops,'/api/ops/workspace?partnerId=missing',undefined,'',true)).status,404);
+  assert.equal((await call(ops,'/api/ops/workspace',{partnerId:'test-a'},'',true)).status,404);
+  assert(!JSON.stringify(adminView.body).includes('token_hash'));
   const share={poolId:'test-a-co2',pioneerName:'isolated-pioneer',units:'25',reason:'Local test only',idempotencyKey:'00000000-0000-4000-8000-000000000001'};
   const first=await call(partner,'/api/partner/share',share,cookie);assert.equal(first.status,201);
   const repeat=await call(partner,'/api/partner/share',share,cookie);assert.equal(repeat.status,200);assert.equal(repeat.body.share.id,first.body.share.id);
@@ -48,6 +56,7 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
   await call(ops,'/api/ops/publish',payload('test-b'),'',true);
   assert.equal((await call(partner,'/api/partner/share',{...share,poolId:'test-b-co2',idempotencyKey:'00000000-0000-4000-8000-000000000004'},cookie)).status,404);
   let pub=await call(publicPage,'/api/public/test-a');assert.equal(pub.status,200);assert.equal(Number(pub.body.pools.find(p=>p.id==='test-a-co2').shared_units),25);assert.equal(pub.body.records.length,1);assert.equal(Number(pub.body.pools.find(p=>p.id==='test-a-co2').share_count),1);
+  const sharedView=await call(ops,'/api/ops/workspace?partnerId=test-a',undefined,'',true);assert.equal(Number(sharedView.body.pools.find(p=>p.id==='test-a-co2').shared_units),25);assert.equal(sharedView.body.shares[0].id,first.body.share.id);
   const record=await call(publicPage,`/api/public/test-a/records/${first.body.share.id}`);assert.equal(record.status,200);assert.equal(record.body.record.proof_urls.length,1);
   assert.equal((await call(publicPage,`/api/public/test-b/records/${first.body.share.id}`)).status,404);
   const request=await call(partner,'/api/partner/request',{pi:20,basis:'co2',message:'Local test request'},cookie);assert.equal(request.status,201);

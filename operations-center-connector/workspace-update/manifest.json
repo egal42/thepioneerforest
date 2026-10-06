@@ -1,0 +1,39 @@
+{
+  "files": [
+    {
+      "path": "ui/app.py",
+      "old_sha256": "6b4e6e5bbd600d0983bea1daed0237d62e045a8d7c377af02e3fb1da8ba958c6",
+      "new_sha256": "9d141de18cbe9c10cc0e5acfc7f24867004c22217a028bac5a3b5d29ca60168f"
+    },
+    {
+      "path": "ui/templates/partner_detail.html",
+      "old_sha256": "2dd801666f4c2fe20c6bf0e7d9f0dd497655c686b6945f45a912a30d42d75a56",
+      "new_sha256": "2296f4736c654636ab611e03cd1f9ae3e8e86c4e1d5ae48b159d888d6f66a4d2"
+    },
+    {
+      "path": "ui/templates/partner_workspace_readonly.html",
+      "old_sha256": null,
+      "new_sha256": "51087d7bc9b4823382b2b8f9e0deeca19723d22a0fcf0c2644e4c9aa1af4c6bc"
+    },
+    {
+      "path": "ui/static/partner-workspace/readonly.js",
+      "old_sha256": null,
+      "new_sha256": "5f4d473f446077a1ccd70ca14d5284ee67e835b7ad77a843821c511addc88df2"
+    },
+    {
+      "path": "ui/static/partner-workspace/omc-layout.css",
+      "old_sha256": null,
+      "new_sha256": "1d3390f2c039f0d2cf626d1b6d70a7eec42e86fe36db469fa8ddbae5228eb8d1"
+    },
+    {
+      "path": "ui/static/partner-workspace/sandbox-design.css",
+      "old_sha256": null,
+      "new_sha256": "b92cfcb07dc10687410d9516ffe0c3fdf8f22d3b92389006e46ade38f68e29ce"
+    },
+    {
+      "path": "ui/static/partner-workspace/theme.js",
+      "old_sha256": null,
+      "new_sha256": "da80420c3f1a0f737bb4777dcc8ac480449afb54bb0d13a9c8ee7e8a43c35aec"
+    }
+  ]
+}
