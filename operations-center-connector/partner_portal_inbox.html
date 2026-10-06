@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<p><a href="{{ url_for('partners_home') }}">← Partner Pools</a></p>
+<h2>Online partner activity</h2>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+{% if portal_ready %}
+<form method="post"><button type="submit">Fetch new activity</button></form>
+{% else %}<p>Connection is not configured yet. No online data has been imported.</p>{% endif %}
+<p>Requests and share records are saved in the local portal inbox. Review them here before taking action.</p>
+{% for event in events %}
+<article style="border:1px solid #ccc;padding:14px;margin:12px 0">
+  <strong>{{ event.partner_id }} · {{ event.event_type }}</strong> · {{ event.created_at }}<br>
+  {% if event.event_type == 'request.created' %}
+    {{ event.requested_pi }} Pi · {{ event.request_basis }} · {{ event.message }} · {{ event.request_status }}
+    <p><a href="{{ url_for('partner_pool_pricing', mode='budget', basis=event.request_basis, budget_pi=event.requested_pi, offer_name=event.partner_id ~ ' pool request') }}">Build offer from this request</a></p>
+    {% if portal_ready %}<form method="post" action="{{ url_for('partner_portal_send_offer', partner_id=event.partner_id, request_id=event.entity_id) }}">
+      <label>Saved offer <select name="offer_id" required>
+        <option value="">Choose a ready offer</option>
+        {% for offer in ready_offers if offer.search.basis == event.request_basis %}
+          <option value="{{ offer.id }}">{{ offer.name }}</option>
+        {% endfor %}
+      </select></label> <button type="submit">Send offer to partner</button>
+    </form>{% endif %}
+  {% elif event.event_type == 'offer.selected' %}
+    Partner selected {{ event.selected_key }} · final price {{ event.selected_price_pi }} Pi.
+    <p>Review payment and planting in the Operations Center before publishing a verified pool.</p>
+  {% else %}
+    {{ event.pioneer_name }} · {{ event.units }} from {{ event.pool_id }} · {{ event.reason }}
+  {% endif %}
+  <small>Online event {{ event.id }} · {{ event.entity_id }}</small>
+</article>
+{% else %}<p>No online activity received yet.</p>{% endfor %}
+{% endblock %}
