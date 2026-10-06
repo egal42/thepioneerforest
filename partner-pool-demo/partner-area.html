@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GreenSpark — Pool Management Demo</title>
+<style>
+:root{--bg:#100d22;--panel:#18132f;--panel2:#211943;--line:#4c3d78;--text:#fff9ff;--muted:#c9bddf;--green:#ff6f91;--gold:#ffc857}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 5%,#41245f 0,#17102d 28%,#0d0a1b 70%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;gap:24px;align-items:center;margin-bottom:20px}.demo-id{margin-left:auto;flex:0 0 auto;text-align:right;padding-left:30px;border-left:1px solid #70558d;min-width:255px}.demo-kicker{font-size:10px;letter-spacing:2.2px;color:#c8b8dd;font-weight:750}.demo-title{font-size:21px;line-height:1.15;margin-top:4px;color:#fff}.demo-title strong{color:#ff8baa}.demo-note{font-size:10px;color:#9f91b8;margin-top:5px}.top h1{margin:0;font-size:30px;background:linear-gradient(90deg,#fff,#ff8baa,#b798ff);-webkit-background-clip:text;color:transparent}.top p{margin:5px 0;color:var(--muted)}
+.badge{border:1px solid var(--line);padding:8px 12px;border-radius:999px;color:var(--muted)}.card{background:linear-gradient(145deg,rgba(30,23,58,.96),rgba(18,14,38,.96));border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 18px 50px #0007,0 0 28px #8c52ff0d}
+h2,h3{margin:0 0 12px}.intro{color:var(--muted);max-width:800px}.switch{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.switch button,.small{cursor:pointer;border:1px solid var(--line);background:#2a2050;color:#f5efff;border-radius:10px;padding:9px 13px;font-weight:700}.switch button.on{background:var(--green);color:#1a1029}.pool-selector button{min-width:245px;text-align:left;padding:12px 14px}.pool-partner{display:block;font-size:12px;font-weight:700;letter-spacing:.3px;opacity:.72;margin-bottom:4px}.pool-name{display:block;font-size:15px;font-weight:850}.pool-mini{display:block;font-size:11px;font-weight:500;opacity:.8;margin-top:5px}.completed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}.completed-item{background:#130f28;border:1px solid #4c3d78;border-radius:13px;padding:14px;opacity:.82}.completed-item b{display:block;margin-bottom:5px}.completed-item span{font-size:13px;color:var(--muted)}
+.fixed{font-size:13px;color:var(--gold);margin:8px 0 0}.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.stat{background:linear-gradient(145deg,#211943,#18132f);border:1px solid #4c3d78;border-radius:13px;padding:14px}.stat small,label{color:var(--muted)}.stat b{display:block;font-size:21px;margin-top:4px}
+.bar{height:10px;background:#0b0818;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:var(--green)}
+.row{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #3a2e61;padding:9px 0}.row span:first-child{color:var(--muted)}a{color:#ff8baa}
+label{display:block;font-size:13px;margin:12px 0 6px}input,textarea{width:100%;border:1px solid var(--line);background:#100d22;color:white;border-radius:10px;padding:11px;font:inherit}textarea{min-height:66px;resize:vertical}
+.primary{width:100%;border:0;border-radius:10px;padding:12px;margin-top:15px;background:var(--green);color:#1a1029;font-weight:800;cursor:pointer}.note{font-size:12px;color:var(--muted)}
+.result{display:none}.resultgrid{display:grid;grid-template-columns:.85fr 1.15fr;gap:18px}.sharecard{aspect-ratio:1/1;background:radial-gradient(circle at 48% 20%,#5a2b70 0,#24143e 38%,#100d22 75%);border:1px solid #7156a8;border-radius:20px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}
+.sharecard:before{content:"";position:absolute;width:240px;height:240px;border:1px solid #ff6f9166;border-radius:50%;top:-100px;right:-80px}.sharecard .mini{letter-spacing:2px;color:#d7c8f2;font-size:11px}.sharecard .amount{font-size:34px;font-weight:900;color:#ff8baa;margin:20px 0 5px}.sharecard .to{color:#c9bddf}.sharecard .user{font-size:22px;font-weight:800;margin:4px}.sharecard .pool{margin-top:24px;font-size:13px;color:#d6c9e8}.sharecard .brand{position:absolute;bottom:17px;font-size:12px;color:#ad9bc7}
+.output{background:#130f28;border:1px solid #4c3d78;border-radius:13px;padding:14px;margin:10px 0}.output pre{white-space:pre-wrap;font:14px/1.65 system-ui;margin:0;color:#f3ecff}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.history{overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #3a2e61}th{color:var(--muted);font-size:13px}
+.err{color:#ff8c8c;font-size:13px}.footer{text-align:center;color:#9f91b8;font-size:12px;margin:22px}
+@media(max-width:800px){.grid,.resultgrid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}@media(max-width:480px){.top{align-items:flex-start;flex-direction:column}.demo-id{margin-left:0;text-align:left;min-width:0;border-left:0;padding-left:0}}
+
+a.btn{display:inline-block;text-decoration:none;color:inherit}
+.demo-proof{font:inherit;cursor:pointer}
+.proof-text-btn{background:none;border:0;padding:0;color:#ffc857;text-decoration:underline;font:inherit;cursor:pointer}
+
+.gs-logo{display:block;height:auto}.gs-logo-hero{width:min(390px,78vw);margin:0 auto 22px}.gs-logo-head{width:230px;margin:0 0 10px}@media(max-width:650px){.gs-logo-head{width:190px}.gs-logo-hero{width:min(330px,84vw)}}
+
+/* Clear but restrained demo identity */
+.demo-version-badge{
+ display:inline-flex;align-items:center;gap:7px;
+ padding:6px 10px;border:1px solid rgba(255,189,89,.52);
+ border-radius:999px;background:rgba(255,189,89,.08);
+ color:#ffd071;font-size:10px;font-weight:900;letter-spacing:.13em;
+ text-transform:uppercase;white-space:nowrap
+}
+.demo-version-badge::before{
+ content:"";width:6px;height:6px;border-radius:50%;background:#ffbd59;
+ box-shadow:0 0 10px rgba(255,189,89,.45)
+}
+.demo-version-note{color:#bcaec9;font-size:11px;margin-top:7px}
+
+
+/* Unified partner header: compact on desktop and mobile */
+.clean-partner-header{
+ background:#120a20;
+ border-bottom:1px solid rgba(255,255,255,.07);
+}
+.clean-partner-header .clean-head{
+ max-width:1060px;margin:0 auto;padding:18px 20px;
+ display:flex;align-items:center;justify-content:space-between;gap:28px;
+}
+.clean-brand{display:flex;align-items:center;gap:16px;min-width:0}
+.clean-brand img{display:block;width:235px;max-width:44vw;height:auto;margin:0}
+.clean-demo{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.clean-tpf{
+ border-left:1px solid rgba(255,255,255,.15);
+ padding-left:28px;min-width:220px;
+}
+.clean-tpf b{display:block;font-size:11px;letter-spacing:.16em;color:#fff}
+.clean-tpf span{display:block;margin-top:5px;font-size:12px;color:#e7dff0}
+.clean-tpf em{font-style:normal;color:#ffbd59}
+@media(max-width:650px){
+ .clean-partner-header .clean-head{
+   padding:14px 18px;display:block;
+ }
+ .clean-brand{justify-content:space-between;gap:10px}
+ .clean-brand img{width:185px;max-width:58vw}
+ .clean-demo .demo-version-badge{padding:5px 8px;font-size:9px}
+ .clean-tpf{
+   border-left:0;border-top:1px solid rgba(255,255,255,.11);
+   padding:10px 0 0;margin-top:11px;min-width:0;
+   display:flex;align-items:baseline;gap:8px;
+ }
+ .clean-tpf b{font-size:9px}
+ .clean-tpf span{margin:0;font-size:10px}
+}
+
+
+button.small:disabled{opacity:.48;cursor:not-allowed;filter:saturate(.55)}
+
+.history-action{background:none;border:0;padding:0;color:#ff9fbc;font:inherit;font-weight:800;cursor:pointer;text-decoration:none}
+.history-action:hover{text-decoration:underline;color:#ffc1d4}
+@media(max-width:760px){
+ .history table{min-width:760px}
+ .history{overflow-x:auto}
+}
+
+/* Reusable Partner Pool share-card system */
+.template-picker{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
+.template-btn{border:1px solid #514071;background:#17112d;color:#d9cee9;border-radius:999px;padding:7px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.template-btn.on{border-color:var(--partner-accent,#f16c8e);color:#fff;background:#2a1b46}
+.sharecard{
+ --partner-primary:#b8f35b;--partner-accent:#f16c8e;--partner-blue:#52c9f5;
+ aspect-ratio:1/1;background:radial-gradient(circle at 48% 20%,#5a2b70 0,#24143e 38%,#100d22 75%);
+ border:1px solid color-mix(in srgb,var(--partner-primary) 45%,#67538a);
+ border-radius:20px;padding:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ text-align:center;position:relative;overflow:hidden;isolation:isolate
+}
+.sharecard:before{content:"";display:block;position:absolute;left:20%;right:20%;top:25%;bottom:22%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,rgba(24,14,42,.99) 0%,rgba(24,14,42,.97) 42%,rgba(24,14,42,.76) 62%,rgba(24,14,42,0) 82%)}
+.card-art{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;transform:scale(1.035) translateY(1.2%);transform-origin:center}
+.sharecard>*:not(.card-art){position:relative;z-index:2}
+.card-logo-wrap{width:55%;height:64px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.card-logo-wrap img{max-width:100%;max-height:60px;display:block}
+.sharecard .card-label{font-size:10px;letter-spacing:.22em;color:#d7c8f2;font-weight:800}
+.sharecard .amount{margin:18px 0 6px;line-height:1;text-wrap:balance}
+.sharecard .amount-num{display:block;font-size:70px;line-height:.88;font-weight:950;color:#fff;text-shadow:0 0 18px color-mix(in srgb,var(--partner-primary) 65%,transparent)}
+.sharecard .amount-unit{display:block;margin-top:10px;font-size:27px;line-height:1;font-weight:950;letter-spacing:.16em;color:var(--partner-primary);text-transform:uppercase}
+.sharecard .to{font-size:14px;color:#c9bddf}
+.sharecard .user{font-size:24px;line-height:1.1;font-weight:900;margin:5px 0;max-width:90%;overflow-wrap:anywhere}
+.sharecard .reason{font-size:12px;color:#eef2f0;min-height:18px;margin-top:17px;text-shadow:0 1px 5px #000}
+.sharecard .pool{margin-top:18px;font-size:12px;color:#f2f5f3;padding:8px 16px;border:1px solid var(--partner-accent);border-radius:999px;background:#020608e8;min-width:58%}
+.sharecard .brand{position:absolute;bottom:18px;font-size:11px;color:#cbd4d0;text-shadow:0 1px 5px #000}.sharecard .brand b{font-size:13px;color:#fff}
+
+@media(max-width:650px){
+ .sharecard{padding:22px}.card-logo-wrap{width:62%;height:54px}.sharecard .amount-num{font-size:58px}.sharecard .amount-unit{font-size:23px}.sharecard .user{font-size:20px}
+}
+
+
+/* FINAL CARD LOCK — preserve artwork geometry exactly as approved */
+.sharecard{display:block;padding:0;background:radial-gradient(circle at 48% 20%,#5a2b70 0,#24143e 38%,#100d22 75%)}
+.sharecard:before{left:15%;right:15%;top:20%;bottom:24%;width:auto;height:auto;border:0!important;border-radius:0!important;background:radial-gradient(ellipse at center,rgba(24,14,42,.98) 0%,rgba(24,14,42,.95) 43%,rgba(24,14,42,.58) 66%,rgba(24,14,42,0) 82%)}
+.card-art{inset:0;width:100%;height:100%;transform:none!important;object-fit:contain}
+.card-logo-wrap{position:absolute!important;top:6.5%;left:7%;width:43%;height:10%;margin:0;display:flex;align-items:center;justify-content:flex-start}
+.card-logo-wrap img{max-width:100%;max-height:100%;object-fit:contain;object-position:left center}
+.sharecard .card-label{position:absolute!important;top:31%;left:15%;right:15%;font-size:clamp(8px,1.25vw,13px);letter-spacing:.28em}
+.sharecard .amount{position:absolute!important;top:37%;left:15%;right:15%;margin:0}
+.sharecard .amount-num{font-size:clamp(54px,8.5vw,92px)}
+.sharecard .amount-unit{font-size:clamp(21px,3.3vw,34px);margin-top:9px}
+.sharecard .to{position:absolute!important;top:53.5%;left:15%;right:15%;font-size:clamp(12px,1.8vw,18px)}
+.sharecard .user{position:absolute!important;top:58%;left:10%;right:10%;max-width:none;margin:0;font-size:clamp(19px,3vw,30px)}
+.sharecard .reason{position:absolute!important;top:66%;left:12%;right:12%;margin:0;min-height:0;font-size:clamp(10px,1.55vw,15px)}
+.sharecard .pool{position:absolute!important;top:73%;left:20%;right:20%;min-width:0;margin:0;padding:8px 14px;font-size:clamp(10px,1.45vw,14px)}
+.sharecard .brand{position:absolute!important;bottom:4.5%;left:10%;right:10%;font-size:clamp(9px,1.3vw,12px)}
+.sharecard .brand b{font-size:clamp(11px,1.55vw,15px)}
+</style>
+
+<style>
+.demo-switch{max-width:1160px;margin:18px auto 8px;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.switch-item{display:block;text-decoration:none;color:inherit;padding:13px 16px;border-radius:14px;border:1px solid #ffffff20;background:#ffffff08}
+.switch-item strong{display:block;font-size:13px}.switch-item span{display:block;margin-top:4px;color:#bcaec9;font-size:11px;line-height:1.4}
+.switch-item.active{border-color:#ffbd5966;background:#ffbd590d}
+@media(max-width:650px){.demo-switch{grid-template-columns:1fr;padding:0 16px}}
+</style>
+
+
+<style>
+body::after{
+ content:"DEMO VERSION";position:fixed;right:22px;bottom:18px;z-index:9000;
+ font-size:10px;font-weight:900;letter-spacing:.18em;color:#ffffff32;
+ pointer-events:none
+}
+.demo-switch::before{
+ content:"DEMO NAVIGATION";grid-column:1/-1;color:#bcaec9;font-size:9px;
+ font-weight:900;letter-spacing:.15em;margin:0 0 -4px 3px
+}
+</style>
+
+<script>
+if(sessionStorage.getItem('greensparkPartnerAccess')!=='yes'){
+  window.location.replace('sign-in.html');
+}
+</script>
+
+</head>
+<body>
+<header class="clean-partner-header">
+ <div class="clean-head">
+  <div class="clean-brand">
+   <img src="assets/greenspark-logo.svg" alt="GreenSpark logo">
+   <div class="clean-demo"><span class="demo-version-badge">Demo Version</span></div>
+  </div>
+  <div class="clean-tpf">
+   <b>THE PIONEER FOREST</b>
+   <span>Partner Pool <em>Demo</em></span>
+  </div>
+ </div>
+</header>
+
+<nav class="demo-switch" aria-label="Demo navigation between partner and public views">
+  <div class="switch-item active">
+    <strong>🛠️ Manage Pools</strong>
+    <span>Demo view of GreenSpark's partner workspace.</span>
+  </div>
+  <a class="switch-item" href="index.html">
+    <strong>🌍 Public Impact Page</strong>
+    <span>Demo view of the page GreenSpark can share publicly.</span>
+  </a>
+</nav>
+
+<section class="card">
+<h2>Your Active Pools</h2>
+<p class="intro">Choose a pool to view its balance, give a reward and see its activity.</p>
+<div class="switch pool-selector">
+  <button id="treeBtn" class="on"><span class="pool-partner">GreenSpark</span><span class="pool-name">🌳 Tree Pool 01</span><span class="pool-mini">38 trees available</span></button>
+  <button id="co2Btn"><span class="pool-partner">GreenSpark</span><span class="pool-name">🌍 CO₂ Pool 01</span><span class="pool-mini">7,000 kg CO₂ available</span></button>
+</div>
+<p class="fixed"><b>Good to know:</b> Each pool has one fixed allocation basis — Trees or CO₂ — set when the pool is created. Its pool type cannot be changed later.</p>
+</section>
+
+<div class="grid">
+<section class="card">
+<h2 id="poolTitle"></h2>
+<div class="stats"><div class="stat"><small>Pool Total</small><b id="total"></b></div><div class="stat"><small>Allocated</small><b id="allocated"></b></div><div class="stat"><small>Available</small><b id="available"></b></div></div>
+<div class="bar"><span id="progress"></span></div>
+<div style="margin-top:14px">
+<div class="row"><span>Status</span><span style="color:#57d68d">● Active</span></div>
+<div class="row"><span>Allocation basis</span><span id="basis"></span></div>
+<div class="row"><span>Planting</span><span>Completed ✓</span></div>
+<div class="row"><span>Project</span><span>Example planting project</span></div>
+<div class="row"><span>Pool proof</span><span><button type="button" class="proof-text-btn" onclick="alert('In the real system, this opens the planting certificate linked to the selected pool.')">Certificate</button> · <button type="button" class="proof-text-btn" onclick="alert('In the real system, this opens the tree / planting record linked to the selected pool.')">Tree / planting link</button></span></div>
+</div>
+<p class="note" id="poolFriendlyNote">Your trees are already planted and waiting to be shared with your community. Each allocation assigns trees from your available pool to a Pioneer.</p>
+</section>
+
+<section class="card">
+<h2>Reward a Pioneer</h2>
+<label>Pioneer Username</label><input id="username" placeholder="e.g. pioneer123">
+<label id="amountLabel"></label><input id="amount" type="number" min="1">
+<label>For / reason (optional)</label><textarea id="reference" placeholder="e.g. Ecosystem Quest"></textarea>
+<button class="primary" onclick="allocate()">Give Reward</button><p id="error" class="err"></p>
+</section>
+</div>
+
+<section class="card result" id="result">
+<h2>✓ Reward complete! 🌱</h2>
+<p class="intro">Everything you need to share this allocation with your community is ready below.</p>
+<div class="resultgrid">
+<div>
+<h3>Share Card</h3>
+<div class="template-picker" aria-label="Share card template">
+ <button type="button" class="template-btn on" data-template="tree" onclick="setCardTemplate('tree')">🌳 Tree</button>
+ <button type="button" class="template-btn" data-template="planet" onclick="setCardTemplate('planet')">🌍 Planet</button>
+</div>
+<div class="sharecard card-tree" id="shareCard">
+ <svg class="card-art" id="cardArt" viewBox="0 0 1080 1080" aria-hidden="true"></svg>
+ <div class="card-logo-wrap"><img id="cardPartnerLogo" src="assets/greenspark-logo.svg" alt="GreenSpark"></div>
+ <div class="card-label">COMMUNITY REWARD</div>
+ <div class="amount" id="cardAmount"></div>
+ <div class="to">for</div>
+ <div class="user" id="cardUser"></div>
+ <div class="reason" id="cardReason"></div>
+ <div class="pool" id="cardPool"></div>
+ <div class="brand">Environmental backing by <b>The Pioneer Forest</b> 🌱</div>
+</div>
+<div class="actions"><button class="small" type="button" onclick="downloadShareCard()">Download Share Card</button></div>
+<p class="note">Choose Tree or Planet. The reward data stays the same; only the visual template changes.</p>
+</div>
+<div>
+<h3>Reward Details</h3>
+<div class="output"><div id="recordText"></div><div class="actions"><button class="small" onclick="copyRewardDetails()">Copy Reward Details</button></div></div>
+<h3 style="margin-top:18px">Share with your community</h3>
+<div class="output"><pre id="postText"></pre><div class="actions"><button class="small" onclick="copyPost()">Copy Post Text</button></div></div>
+</div>
+</div>
+</section>
+
+<section class="card history">
+<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Your Allocations</h2><button class="small" onclick="resetDemo()">Reset Demo</button></div>
+<table><thead><tr><th>Date</th><th>Recipient</th><th>Allocation</th><th>For</th><th>Pool Record</th><th>Reward</th></tr></thead><tbody id="history"></tbody></table>
+<p class="note">Every allocation is recorded from your existing Partner Pool. The planting proof stays connected to the pool, so the full journey remains transparent.</p>
+</section>
+<section class="card">
+<h2>Completed Pools</h2>
+<p class="intro">Fully allocated pools stay here as part of your permanent record. You can always return to their history and planting proof.</p>
+<div class="completed-grid">
+  <div class="completed-item">
+    <b>🌳 GreenSpark Tree Pool 00 · Completed ✓</b>
+    <span>50 trees allocated · 0 available</span>
+    <div style="margin-top:10px"><a class="btn" href="record-tree-00.html">View Pool Record</a></div>
+  </div>
+  <div class="completed-item">
+    <b>🌍 GreenSpark CO₂ Pool 00 · Completed ✓</b>
+    <span>5,000 kg CO₂ allocated · 0 available</span>
+    <div style="margin-top:10px"><a class="btn" href="record-co2-00.html">View Pool Record</a></div>
+  </div>
+</div>
+</section>
+<div class="footer">Partner Pool Demo · The Pioneer Forest</div>
+</div>
+<script>
+const STORAGE_KEY='greensparkPartnerPoolDemoV1';
+const init={tree:{total:50,used:12,unit:'trees',basis:'Trees',title:'GreenSpark Tree Pool 01'},co2:{total:10000,used:3000,unit:'kg CO₂',basis:'CO₂',title:'GreenSpark CO₂ Pool 01'}};
+const baseRewards={
+ tree:[{id:'GS-TP01-0003',mode:'tree',user:'examplepioneer',amount:3,display:'3 trees',ref:'Example quest reward',date:'18 Sep 2026',pool:'GreenSpark Tree Pool 01'}],
+ co2:[{id:'GS-CP01-0003',mode:'co2',user:'examplepioneer',amount:1000,display:'1,000 kg CO₂',ref:'Example ecosystem reward',date:'18 Sep 2026',pool:'GreenSpark CO₂ Pool 01'}]
+};
+const baseLogs={tree:[['18 Sep 2026','examplepioneer','3 trees','Example quest reward']],co2:[['18 Sep 2026','examplepioneer','1,000 kg CO₂','Example ecosystem reward']]};
+let mode='tree',last=null;
+const partnerCardConfig={
+ name:'GreenSpark',
+ logo:'assets/greenspark-logo.svg',
+ primary:'#b8f35b',
+ accent:'#f16c8e',
+ blue:'#52c9f5',
+ background:'#0b0918'
+};
+let cardTemplate='tree';
+
+
+function freshDemo(){return {state:JSON.parse(JSON.stringify(init)),logs:JSON.parse(JSON.stringify(baseLogs)),rewards:[...JSON.parse(JSON.stringify(baseRewards.tree)),...JSON.parse(JSON.stringify(baseRewards.co2))],seq:1};}
+function loadDemo(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(saved && saved.state && saved.logs && Array.isArray(saved.rewards)){
+      for(const kind of ['tree','co2']){
+        const base=baseRewards[kind][0];
+        if(!saved.rewards.some(r=>r.id===base.id)) saved.rewards.push(JSON.parse(JSON.stringify(base)));
+      }
+      return saved;
+    }
+  }catch(e){}
+  return freshDemo();
+}
+let demo=loadDemo(),state=demo.state,logs=demo.logs;
+const $=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString('en-US');
+function saveDemo(){demo.state=state;demo.logs=logs;localStorage.setItem(STORAGE_KEY,JSON.stringify(demo));}
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function render(){
+ let st=state[mode],free=st.total-st.used;
+ $('poolTitle').textContent=st.title;$('total').textContent=fmt(st.total)+' '+st.unit;$('allocated').textContent=fmt(st.used)+' '+st.unit;$('available').textContent=fmt(free)+' '+st.unit;$('basis').textContent=st.basis;
+ $('amountLabel').textContent=mode==='tree'?'Number of Trees':'Amount (kg CO₂)';
+ $('poolFriendlyNote').textContent=mode==='tree'?'Your trees are already planted and waiting to be shared with your community. Each reward assigns trees from your available pool to a Pioneer.':'Your CO₂ impact is already backed and recorded. Each reward assigns part of your available pool to a Pioneer.';
+ $('progress').style.width=(st.used/st.total*100)+'%';
+ $('treeBtn').classList.toggle('on',mode==='tree');$('co2Btn').classList.toggle('on',mode==='co2');
+ const rows=demo.rewards.filter(r=>r.mode===mode);
+ $('history').innerHTML=rows.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.user)}</td><td>${esc(r.display)}</td><td>${esc(r.ref||'—')}</td><td><a href="${mode==='tree'?'record-tree-01.html':'record-co2-01.html'}">View pool record</a></td><td><button class="history-action" type="button" onclick="openReward('${esc(r.id)}')">Open reward →</button></td></tr>`).join('');
+}
+$('treeBtn').onclick=()=>{mode='tree';setCardTemplate('tree');$('result').style.display='none';render()};
+$('co2Btn').onclick=()=>{mode='co2';setCardTemplate('planet');$('result').style.display='none';render()};
+
+
+function setCardTemplate(name){
+ cardTemplate=name;
+ document.querySelectorAll('.template-btn').forEach(b=>b.classList.toggle('on',b.dataset.template===name));
+ const card=$('shareCard');
+ card.classList.remove('card-tree','card-planet');
+ card.classList.add('card-'+name);
+ renderCardArt();
+}
+function cardArtworkSvg(template){
+ const p=partnerCardConfig.primary,a=partnerCardConfig.accent,n='#d5dfdb';
+ const defs=`<defs><filter id="g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+ if(template==='tree'){
+  const leaves=[[165,220,-20,p,.9],[245,170,15,a,.8],[335,140,-10,p,.85],[420,175,25,a,.78],[675,170,-20,p,.82],[765,135,12,a,.86],[855,180,-15,p,.8],[945,240,22,a,.9],[110,345,-12,p,.8],[195,395,22,a,.76],[925,380,-20,p,.8],[1010,345,12,a,.78],[100,550,12,a,.75],[185,600,-18,p,.72],[895,575,18,a,.75],[995,535,-12,p,.72],[285,310,-20,p,.68],[805,295,18,a,.68],[250,680,15,a,.62],[845,665,-18,p,.62],[225,275,10,p,.58],[895,285,-10,a,.58],[135,455,-12,p,.55],[955,455,12,a,.55]];
+  const L=leaves.map(q=>`<g transform="translate(${q[0]} ${q[1]}) rotate(${q[2]}) scale(${q[4]})" fill="none" stroke="${q[3]}" stroke-width="2"><path d="M0 0C16-22 45-22 61 0C44 21 17 21 0 0Z"/><path d="M5 0C23-2 41-2 56 0"/></g>`).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080">${defs}<g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#g)">
+  <path stroke="${p}" stroke-width="5" d="M570 835C562 715 585 610 640 505C700 395 790 295 950 205"/><path stroke="${a}" stroke-width="5" d="M535 835C545 715 520 610 470 510C415 400 330 305 165 230"/><path stroke="${n}" stroke-width="2.2" d="M588 835C610 725 650 625 720 540C790 460 875 415 1015 390"/>
+  <path stroke="${p}" stroke-width="2.2" d="M640 505C750 480 845 430 930 350"/><path stroke="${a}" stroke-width="2.2" d="M470 510C370 485 280 435 190 360"/><path stroke="${p}" stroke-width="1.9" d="M570 595C475 555 390 550 290 580"/><path stroke="${a}" stroke-width="1.9" d="M620 590C720 555 805 560 905 585"/>
+  <path stroke="${p}" stroke-width="1.8" d="M510 630C405 665 315 690 205 690"/><path stroke="${a}" stroke-width="1.8" d="M665 630C765 665 855 690 970 680"/><path stroke="${p}" stroke-width="1.4" d="M520 425C480 330 420 255 340 140"/><path stroke="${a}" stroke-width="1.4" d="M650 415C705 325 750 235 770 135"/>
+  ${L}<path stroke="${p}" stroke-width="4" d="M555 830C455 905 340 955 95 1020"/><path stroke="${a}" stroke-width="4" d="M580 835C690 910 820 965 1025 1020"/><path stroke="${n}" stroke-width="1.8" d="M566 850C500 925 430 985 315 1040"/>
+  <path stroke="${p}" stroke-width="1.2" opacity=".4" d="M88 685C25 465 105 240 300 110"/><path stroke="${a}" stroke-width="1.2" opacity=".4" d="M785 95C1000 185 1070 390 1010 635"/></g></svg>`;
+ }
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080">${defs}<g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#g)">
+ <path stroke="${p}" stroke-width="4.5" d="M178 625C130 510 145 370 215 270C285 170 390 115 500 105"/><path stroke="${a}" stroke-width="4.5" d="M585 107C720 115 835 185 900 295C960 395 970 515 925 620"/>
+ <path stroke="${n}" stroke-width="1.8" opacity=".7" d="M205 685C305 775 425 815 530 820"/><path stroke="${p}" stroke-width="2.5" d="M565 820C700 810 825 755 905 675"/>
+ <path stroke="${a}" stroke-width="1.9" d="M180 350C270 295 365 270 445 273"/><path stroke="${p}" stroke-width="1.9" d="M650 273C745 280 835 310 905 360"/><path stroke="${p}" stroke-width="1.6" d="M150 475C245 435 325 420 400 425"/><path stroke="${a}" stroke-width="1.6" d="M690 425C785 420 865 445 940 490"/>
+ <path stroke="${a}" stroke-width="1.7" d="M170 650C250 695 335 715 410 710"/><path stroke="${p}" stroke-width="1.7" d="M680 710C770 715 850 690 920 645"/><path stroke="${n}" stroke-width="1" opacity=".42" d="M190 405C275 370 350 355 420 360"/><path stroke="${n}" stroke-width="1" opacity=".42" d="M665 360C755 355 835 375 905 410"/>
+ <path stroke="${p}" stroke-width="1.8" d="M300 185C250 295 235 390 255 495"/><path stroke="${a}" stroke-width="1.8" d="M785 185C840 300 850 390 830 495"/><path stroke="${a}" stroke-width="1.35" d="M410 120C365 225 350 305 365 380"/><path stroke="${p}" stroke-width="1.35" d="M675 125C720 220 735 305 720 380"/>
+ <path stroke="${p}" stroke-width="2.6" d="M235 280C275 240 325 215 370 225C400 233 420 255 405 275C385 300 340 295 320 325C300 350 320 380 295 400C270 415 240 395 225 370"/><path stroke="${a}" stroke-width="2.5" d="M720 200C770 190 820 210 850 245C870 270 855 295 825 310C790 325 785 355 810 375C835 395 820 425 785 433"/>
+ <path stroke="${p}" stroke-width="2.1" d="M165 530C205 500 250 495 285 515C310 535 300 565 270 585C240 605 205 595 180 575"/><path stroke="${a}" stroke-width="2.1" d="M875 515C920 495 955 510 980 540C965 575 930 595 895 580"/>
+ <path stroke="${a}" stroke-width="1.25" opacity=".55" d="M90 570C275 685 805 685 995 550"/><path stroke="${p}" stroke-width="1.15" opacity=".42" d="M105 385C290 245 790 230 980 395"/>
+ <path stroke="${p}" stroke-width="3.5" d="M115 945C280 890 390 845 500 780"/><path stroke="${a}" stroke-width="3.5" d="M965 945C800 890 690 845 580 780"/><path stroke="${n}" stroke-width="1.6" d="M245 1005C385 930 470 860 535 790"/></g></svg>`;
+}
+function renderCardArt(){
+ $('cardArt').innerHTML=cardArtworkSvg(cardTemplate).replace(/^<svg[^>]*>|<\/svg>$/g,'');
+}
+function fitCanvasText(ctx,text,maxWidth,startSize,minSize,weight='800'){
+ let size=startSize;
+ do{ctx.font=`${weight} ${size}px Arial, sans-serif`;if(ctx.measureText(text).width<=maxWidth)break;size-=2}while(size>minSize);
+ return size;
+}
+function roundRect(ctx,x,y,w,h,r){
+ ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function loadImage(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=src})}
+async function downloadShareCard(){
+ if(!last)return;
+ const size=1080,c=document.createElement('canvas');c.width=c.height=size;const ctx=c.getContext('2d');
+ const bg=ctx.createRadialGradient(520,215,20,520,470,820);bg.addColorStop(0,'#5a2b70');bg.addColorStop(.38,'#24143e');bg.addColorStop(1,'#100d22');ctx.fillStyle=bg;ctx.fillRect(0,0,size,size);
+ // Render the exact same frozen SVG artwork used in the preview.
+ const svgBlob=new Blob([cardArtworkSvg(cardTemplate)],{type:'image/svg+xml'});const artUrl=URL.createObjectURL(svgBlob);
+ try{const art=await loadImage(artUrl);ctx.drawImage(art,0,0,size,size)}finally{URL.revokeObjectURL(artUrl)}
+ // subtle central readability scrim
+ const scr=ctx.createRadialGradient(540,500,20,540,500,365);scr.addColorStop(0,'rgba(24,14,42,.98)');scr.addColorStop(.43,'rgba(24,14,42,.95)');scr.addColorStop(.66,'rgba(24,14,42,.58)');scr.addColorStop(1,'rgba(24,14,42,0)');ctx.fillStyle=scr;ctx.fillRect(160,215,760,620);
+ // actual partner logo
+ try{const logo=await loadImage(partnerCardConfig.logo);const maxW=430,maxH=100,ratio=Math.min(maxW/logo.width,maxH/logo.height);const w=logo.width*ratio,h=logo.height*ratio;ctx.drawImage(logo,76,70,w,h)}catch(e){}
+ ctx.textAlign='center';ctx.fillStyle='#eef3f0';ctx.font='800 22px Arial';ctx.fillText('COMMUNITY REWARD',540,335);
+ let rawAmount=last.mode==='tree'?String(last.amount):fmt(last.amount);let unit=last.mode==='tree'?(Number(last.amount)===1?'TREE':'TREES'):'KG CO₂';
+ let amountSize=fitCanvasText(ctx,rawAmount,650,120,62,'900');ctx.font=`900 ${amountSize}px Arial`;ctx.fillStyle='#fff';ctx.shadowColor=partnerCardConfig.primary;ctx.shadowBlur=22;ctx.fillText(rawAmount,540,455);ctx.shadowBlur=0;
+ ctx.font='900 48px Arial';ctx.fillStyle=partnerCardConfig.primary;ctx.fillText(unit,540,520);
+ ctx.fillStyle='#fff';ctx.font='30px Georgia';ctx.fillText('for',540,575);
+ let userSize=fitCanvasText(ctx,last.user,760,52,30,'900');ctx.font=`900 ${userSize}px Arial`;ctx.fillText(last.user,540,635);
+ if(last.ref){let ref='For: '+last.ref,rs=fitCanvasText(ctx,ref,760,26,18,'400');ctx.font=`${rs}px Arial`;ctx.fillStyle='#dce4e0';ctx.fillText(ref,540,710)}
+ // pool pill
+ ctx.strokeStyle=partnerCardConfig.accent;ctx.lineWidth=2;roundRect(ctx,225,790,630,64,32);ctx.stroke();ctx.fillStyle='rgba(2,6,8,.9)';roundRect(ctx,225,790,630,64,32);ctx.fill();ctx.font='700 23px Arial';ctx.fillStyle='#fff';ctx.fillText(last.pool,540,831);
+ ctx.font='18px Arial';ctx.fillStyle='#bdc8c3';ctx.fillText('Environmental backing by',540,970);ctx.font='700 25px Arial';ctx.fillStyle='#fff';ctx.fillText('The Pioneer Forest 🌱',540,1005);
+ const a=document.createElement('a');a.download=`${last.id}-${cardTemplate}-share-card.png`;a.href=c.toDataURL('image/png');a.click();
+}
+function showReward(reward){
+ last=reward;
+ $('cardPartnerLogo').src=partnerCardConfig.logo;
+ $('shareCard').style.setProperty('--partner-primary',partnerCardConfig.primary);
+ $('shareCard').style.setProperty('--partner-accent',partnerCardConfig.accent);
+ $('shareCard').style.setProperty('--partner-blue',partnerCardConfig.blue);
+ let amountRaw=reward.mode==='tree'?String(reward.amount):fmt(reward.amount);
+ let unitRaw=reward.mode==='tree'?(Number(reward.amount)===1?'TREE':'TREES'):'KG CO₂';
+ $('cardAmount').innerHTML=`<span class="amount-num">${esc(amountRaw)}</span><span class="amount-unit">${esc(unitRaw)}</span>`;
+ $('cardUser').textContent=reward.user;
+ $('cardReason').textContent=reward.ref?'For: '+reward.ref:'';
+ $('cardPool').textContent=reward.pool;
+ renderCardArt();
+ $('recordText').innerHTML=`<b>Pioneer:</b> ${esc(reward.user)}<br><b>Reward:</b> ${esc(reward.display)}<br><b>From:</b> ${esc(reward.pool)}${reward.ref?'<br><b>For:</b> '+esc(reward.ref):''}<br><b>Date:</b> ${esc(reward.date)}<br><b>Record ID:</b> ${esc(reward.id)}<br><b>Planting:</b> Already completed 🌱`;
+ $('postText').textContent=`✨ A little GreenSpark for ${reward.user}!\n\n🌱 ${reward.display} from our GreenSpark Partner Pool are now shared with ${reward.user}.${reward.ref?'\n\n💬 '+reward.ref:''}\n\nThe environmental impact is already in place — this reward shares part of it with our community.\n\n🌳 See the planting: [pool link]\n📜 Certificate: [certificate link]\n\nEnvironmental backing by The Pioneer Forest.`;
+ $('result').style.display='block';
+}
+function openReward(id){
+ const reward=demo.rewards.find(r=>r.id===id);
+ if(!reward) return;
+ mode=reward.mode;
+ setCardTemplate(mode==='tree'?'tree':'planet');
+ showReward(reward);
+ render();
+ $('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function allocate(){
+ let st=state[mode],user=$('username').value.trim(),n=Number($('amount').value),free=st.total-st.used;$('error').textContent='';
+ if(!user)return $('error').textContent='Please enter a Pioneer.';
+ if(!n||n<=0)return $('error').textContent='Please enter a valid amount.';
+ if(n>free)return $('error').textContent='This exceeds the available pool balance.';
+ st.used+=n;
+ let a=fmt(n)+' '+st.unit,ref=$('reference').value.trim();
+ let now=new Date(),date=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+ let prefix=mode==='tree'?'GS-TP01-D':'GS-CP01-D';
+ let id=prefix+String(demo.seq++).padStart(4,'0');
+ let reward={id,mode,user,amount:n,display:a,ref,date,created:Date.now(),pool:st.title};
+ demo.rewards.unshift(reward);
+ logs[mode].unshift([date,user,a,ref]);
+ last=reward; saveDemo();
+ showReward(reward);render();$('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function copyTextVerified(text,label){
+ let ok=false;
+ try{
+   if(navigator.clipboard && window.isSecureContext){
+     await navigator.clipboard.writeText(text);
+     ok=true;
+   }
+ }catch(e){}
+ if(!ok){
+   try{
+     const ta=document.createElement('textarea');
+     ta.value=text;
+     ta.setAttribute('readonly','');
+     ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';
+     document.body.appendChild(ta);
+     ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);
+     ok=document.execCommand('copy');
+     ta.remove();
+   }catch(e){ok=false}
+ }
+ if(ok){
+   alert(label+' copied to clipboard.');
+ }else{
+   prompt('Automatic copy is blocked by this browser. Copy the text below:',text);
+ }
+}
+function copyRewardDetails(){copyTextVerified($('recordText').innerText.trim(),'Reward details')}
+function copyPost(){copyTextVerified($('postText').textContent.trim(),'Community post')}
+function resetDemo(){
+ localStorage.removeItem(STORAGE_KEY);demo=freshDemo();state=demo.state;logs=demo.logs;last=null;
+ $('result').style.display='none';render();
+}
+render();renderCardArt();
+</script><script>
+document.addEventListener('DOMContentLoaded',function(){
+  const nav=document.querySelector('.demo-switch');
+  if(!nav) return;
+  const out=document.createElement('button');
+  out.type='button';
+  out.textContent='Sign out';
+  out.style.cssText='grid-column:1/-1;justify-self:end;background:none;border:0;color:#bcaec9;font:inherit;font-size:10px;cursor:pointer;padding:0 4px';
+  out.onclick=function(){sessionStorage.removeItem('greensparkPartnerAccess');location.href='sign-in.html';};
+  nav.appendChild(out);
+});
+</script>
+
+</body></html>

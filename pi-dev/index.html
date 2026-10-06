@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>The Pioneer Forest Project</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.75)),
+        radial-gradient(circle at top, #0f5a32 0%, #03170d 70%);
+      color: #f2efe6;
+      font-family: Georgia, serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .card {
+      max-width: 520px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 3rem 2rem;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 0 30px rgba(0,0,0,0.35);
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      line-height: 1.7;
+      opacity: 0.92;
+      margin-bottom: 2rem;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    a {
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 14px;
+      font-weight: bold;
+      transition: 0.2s ease;
+    }
+
+    .primary {
+      background: #d4af37;
+      color: #111;
+    }
+
+    .secondary {
+      background: rgba(255,255,255,0.08);
+      color: #f2efe6;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    a:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    #status {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-top: 1.2rem;
+      margin-bottom: 0;
+      word-break: break-word;
+    }
+  </style>
+
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+  <script>
+    try {
+      if (window.Pi) {
+        window.Pi.init({
+          version: "2.0",
+          sandbox: true
+        });
+      }
+    } catch (error) {
+      console.error("Pi init error:", error);
+    }
+  </script>
+</head>
+
+<body>
+
+  <div class="card">
+    <h1>The Pioneer Forest Project</h1>
+
+    <p>
+      A Pi-powered reforestation project focused on
+      transparency, real-world impact, and growing forest journeys.
+    </p>
+
+    <p style="font-size:0.92rem; opacity:0.72; margin-top:-1rem;">
+      Best experienced inside Pi Browser.
+    </p>
+
+    <div class="buttons">
+
+      <a href="#" class="primary" id="loginBtn">
+        Enter with Pi Login
+      </a>
+
+      <a href="https://thepioneerforest.netlify.app/" class="secondary">
+        Visit Website
+      </a>
+
+      <a href="https://fireside.pinet.com/channels/ThePioneerForest" class="secondary">
+        TPF Fireside Updates
+      </a>
+
+    </div>
+
+    <p id="status">
+      Waiting for Pi login test.
+    </p>
+
+    <p style="font-size:0.8rem; opacity:0.55; margin-top:2rem; margin-bottom:0;">
+      Development preview — Testnet phase
+    </p>
+
+  </div>
+
+  <script>
+    const loginBtn = document.getElementById("loginBtn");
+    const statusEl = document.getElementById("status");
+
+    loginBtn.addEventListener("click", async function(event) {
+      event.preventDefault();
+
+      alert("CLICK WORKS");
+
+      statusEl.textContent = "Button clicked. Checking Pi SDK...";
+
+      try {
+        if (!window.Pi) {
+          statusEl.textContent = "Pi SDK not available. Open inside Pi Browser / Pi Sandbox.";
+          alert("Pi SDK not available. Open inside Pi Browser / Pi Sandbox.");
+          return;
+        }
+
+        statusEl.textContent = "Pi SDK found. Starting authentication...";
+
+        const auth = await window.Pi.authenticate(
+          ["username"],
+          function onIncompletePaymentFound(payment) {
+            console.log("Incomplete payment found:", payment);
+          }
+        );
+
+        console.log("Authentication successful:", auth);
+
+        statusEl.textContent = "Logged in as: " + auth.user.username;
+
+        alert("Welcome " + auth.user.username);
+
+      } catch (error) {
+        console.error("Pi login error:", error);
+
+        statusEl.textContent = "Pi login failed or was cancelled.";
+
+        alert("Pi login failed or was cancelled.");
+      }
+    });
+  </script>
+
+</body>
+</html>

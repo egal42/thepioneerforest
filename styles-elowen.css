@@ -1,0 +1,253 @@
+/* ======================================================
+   styles-elowen.css
+   Only affects elowen.html via body.home.elowen scope
+====================================================== */
+
+body.home.elowen .header {
+  margin-bottom: 28px;
+}
+
+body.home.elowen .subtitle {
+  margin-top: 8px;
+}
+
+body.home.elowen .intro {
+  margin-bottom: 52px;
+  max-width: 760px;
+}
+
+body.home.elowen .intro h2 {
+  margin-bottom: 16px;
+}
+
+body.home.elowen .intro p {
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+/* Presence panel */
+body.home.elowen .presence-panel {
+  margin: 0 0 78px;
+  text-align: center;
+}
+
+body.home.elowen .presence-frame {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,0.035),
+      rgba(255,255,255,0.018));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 22px 50px rgba(0,0,0,0.34),
+    0 0 0 1px rgba(166,227,179,0.04) inset;
+  position: relative;
+}
+
+body.home.elowen .presence-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 12%,
+      rgba(166,227,179,0.10),
+      transparent 40%),
+    radial-gradient(circle at 50% 100%,
+      rgba(255,255,255,0.04),
+      transparent 38%);
+}
+
+body.home.elowen .presence-art {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  position: relative;
+  z-index: 1;
+  transform: translateY(-2%);
+}
+
+/* Artifact section */
+body.home.elowen .artifact-section {
+  margin-bottom: 68px;
+}
+
+body.home.elowen .artifact-section h2 {
+  margin-bottom: 18px;
+}
+
+body.home.elowen .artifact-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 26px;
+  align-items: start;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.028);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.22);
+}
+
+body.home.elowen .artifact-media {
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+body.home.elowen .artifact-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+body.home.elowen .artifact-body {
+  min-width: 0;
+}
+
+body.home.elowen .artifact-kicker {
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+body.home.elowen .artifact-body h3 {
+  font-size: 1.5rem;
+  margin-bottom: 14px;
+}
+
+body.home.elowen .artifact-body p {
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+body.home.elowen .artifact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 8px;
+}
+
+body.home.elowen .artifact-links a {
+  display: inline-block;
+}
+
+body.home.elowen .artifact-status {
+  margin-top: 14px;
+  margin-bottom: 8px;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  opacity: 0.92;
+}
+
+body.home.elowen .artifact-note {
+  margin-top: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  opacity: 0.88;
+}
+
+body.home.elowen .artifact-note a {
+  display: inline-block;
+  margin-left: 6px;
+}
+
+/* Tooltip wrapper */
+body.home.elowen .info-link {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip panel */
+body.home.elowen .info-link .tooltip {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+
+  position: absolute;
+  left: 0;
+  bottom: 130%;
+
+  max-width: 260px;
+  padding: 12px 14px;
+
+  font-size: 0.85rem;
+  line-height: 1.4;
+
+  color: var(--text-primary);
+
+  background: rgba(12, 24, 18, 0.96);
+  border: 1px solid rgba(166,227,179,0.18);
+  border-radius: 10px;
+
+  box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+
+  z-index: 20;
+}
+
+body.home.elowen .info-link:hover .tooltip,
+body.home.elowen .info-link:focus-within .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Navigation spacing */
+body.home.elowen .paths {
+  margin-bottom: 60px;
+}
+
+/* Mobile */
+@media (max-width: 780px) {
+  body.home.elowen .presence-frame {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  body.home.elowen .presence-art {
+    transform: translateY(-1%);
+  }
+
+  body.home.elowen .artifact-card {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  body.home.elowen .artifact-media {
+    max-width: 320px;
+  }
+
+  body.home.elowen .artifact-body h3 {
+    font-size: 1.35rem;
+  }
+
+  body.home.elowen .info-link .tooltip {
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 520px) {
+  body.home.elowen .presence-panel {
+    margin-bottom: 58px;
+  }
+
+  body.home.elowen .artifact-media {
+    max-width: 100%;
+  }
+
+  body.home.elowen .info-link .tooltip {
+    left: 0;
+    right: auto;
+    bottom: 135%;
+    max-width: 210px;
+    font-size: 0.82rem;
+  }
+}

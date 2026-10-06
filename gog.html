@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guardians of Growth — The Pioneer Forest</title>
+
+  <link rel="icon" href="assets/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/tpf-favicon-180x180.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/tpf-favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/tpf-favicon-16x16.png" />
+
+  <link rel="stylesheet" href="styles-gog.css" />
+</head>
+
+<body>
+
+  <header class="topbar">
+    <nav class="topnav">
+      <a class="btn" href="forest.html">← Back to Forest</a>
+      <a class="btn ghost" href="transparency.html">The Witness</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-media" aria-hidden="true">
+        <img
+          src="assets/gog/Pioneer_Tree_square.jpg"
+          alt=""
+          loading="eager"
+        />
+      </div>
+
+      <div class="hero-text">
+        <h1>Guardians of Growth</h1>
+        <p class="subtitle">The First Dedicated Trees</p>
+
+        <div class="lede">
+          <p>
+            Before there was a forest, there was a simple promise:
+            <strong>One Pioneer. One Tree.</strong>
+          </p>
+          <p>
+            Guardians of Growth was the first public expression of what later became The Pioneer Forest.
+            Each tree was directly planted and individually dedicated.
+          </p>
+        </div>
+
+        <div class="badges" role="list" aria-label="Campaign status">
+          <span class="badge closed" role="listitem">Closed</span>
+          <span class="badge" role="listitem">27 trees planted</span>
+          <span class="badge" role="listitem">27 artworks visible</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RULE CARD -->
+    <section class="rule-card" aria-label="GoG rule">
+      <div class="rule-title">GoG Rule</div>
+      <div class="rule-body">
+        <strong>1 Pi = 1 Tree</strong> — direct dedication model. Not part of the later shared offset system.
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="gallery-block">
+      <div class="gallery-head">
+        <h2>The 27 Guardians</h2>
+        <p>
+          This chapter is closed and preserved as record. The gallery order shuffles on each refresh —
+          no ranking, no hierarchy.
+        </p>
+      </div>
+
+      <div id="gogGrid" class="grid" aria-label="Guardians gallery"></div>
+    </section>
+
+    <!-- TRANSITION -->
+    <section class="transition">
+      <h2>Transition</h2>
+      <p>
+        Guardians of Growth began with direct dedication: one tree, one name, one visible record.
+        From that clarity, the idea expanded into a broader structure — impact tracking, transparency,
+        and an ongoing forest.
+      </p>
+      <p class="quiet">
+        The Pioneer Forest moved forward. The roots remain.
+      </p>
+    </section>
+
+    <!-- PAGE TURN (subtle navigation) -->
+    <div class="page-nav">
+      <a href="forest.html">← Return to Forest</a>
+      <span>•</span>
+      <a href="impact.html">Continue to Impact →</a>
+    </div>
+
+    <footer class="footer">
+      <div>Built slowly. Grown in the open.</div>
+      <div class="footer-sub">Pi-powered reforestation.</div>
+    </footer>
+
+  </main>
+
+  <!-- LIGHTBOX -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <div class="lightbox-backdrop" data-close="1"></div>
+
+    <div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="Image preview">
+      <button class="lb-close" type="button" aria-label="Close (Esc)" data-close="1">×</button>
+
+      <div class="lb-stage">
+        <img id="lbImg" alt="" />
+        <button class="lb-arrow lb-left" type="button" aria-label="Previous (Left arrow)">‹</button>
+        <button class="lb-arrow lb-right" type="button" aria-label="Next (Right arrow)">›</button>
+      </div>
+
+      <div id="lbCaption" class="lb-caption"></div>
+    </div>
+  </div>
+
+  <script>
+    const BASE = "assets/gog/";
+
+    const guardians = [
+      { name: "8ladygambit8", file: "Pioneer_Tree_8ladygambit8.jpg" },
+      { name: "22BigB22", file: "Pioneer_Tree_22BigB22.jpg" },
+      { name: "AKE1974", file: "Pioneer_Tree_AKE1974.jpg" },
+      { name: "Alhaurin1968", file: "Pioneer_Tree_Alhaurin1968.jpg" },
+      { name: "bamisonic", file: "Pioneer_Tree_bamisonic.jpg" },
+      { name: "bill81", file: "Pioneer_Tree_bill81.jpg" },
+      { name: "comfbank", file: "Pioneer_Tree_comfbank.jpg" },
+      { name: "corainna", file: "Pioneer_Tree_corainna.jpg" },
+      { name: "dex31337", file: "Pioneer_Tree_dex31337.jpg" },
+      { name: "Her_Flick_CZ", file: "Pioneer_Tree_Her_Flick_CZ.jpg" },
+      { name: "hienchuong", file: "Pioneer_Tree_hienchuong.jpg" },
+      { name: "holger32", file: "Pioneer_Tree_holger32.jpg" },
+      { name: "Khaihangs", file: "Pioneer_Tree_Khaihangs.jpg" },
+      { name: "malimujo", file: "Pioneer_Tree_malimujo.jpg" },
+      { name: "mamamia05", file: "Pioneer_Tree_mamamia05.jpg" },
+      { name: "micvanhan", file: "Pioneer_Tree_micvanhan.jpg" },
+      { name: "mikk234", file: "Pioneer_Tree_mikk234.jpg" },
+      { name: "mokocchi", file: "Pioneer_Tree_mokocchi.jpg" },
+      { name: "muratyurdakul", file: "Pioneer_Tree_muratyurdakul.jpg" },
+      { name: "PeCuNia24", file: "Pioneer_Tree_PeCuNia24.jpg" },
+      { name: "Pishop", file: "Pioneer_Tree_Pishop.jpg" },
+      { name: "Pompidom", file: "Pioneer_Tree_Pompidom.jpg" },
+      { name: "rockcesar", file: "Pioneer_Tree_rockcesar.jpg" },
+      { name: "ROK77", file: "Pioneer_Tree_ROK77.jpg" },
+      { name: "ron123cash", file: "Pioneer_Tree_ron123cash.jpg" },
+      { name: "rusuana", file: "Pioneer_Tree_rusuana.jpg" },
+      { name: "egal42", file: "Pioneer_Tree_egal42.jpg" }
+    ];
+
+    function shuffleInPlace(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function shuffledGuardiansWithEgalLast(items) {
+      const copy = items.slice();
+      const egalIndex = copy.findIndex(x => x.name.toLowerCase() === "egal42");
+      let egal = null;
+      if (egalIndex >= 0) {
+        egal = copy.splice(egalIndex, 1)[0];
+      }
+      shuffleInPlace(copy);
+      if (egal) copy.push(egal);
+      return copy;
+    }
+
+    const grid = document.getElementById("gogGrid");
+    const ordered = shuffledGuardiansWithEgalLast(guardians);
+
+    ordered.forEach((g, idx) => {
+      const tile = document.createElement("button");
+      tile.className = "tile";
+      tile.type = "button";
+      tile.setAttribute("aria-label", `Open ${g.name}`);
+
+      tile.innerHTML = `
+        <div class="thumb">
+          <img src="${BASE}${g.file}" alt="${g.name}" loading="lazy" />
+        </div>
+        <div class="label">${g.name}</div>
+      `;
+
+      tile.addEventListener("click", () => openLightbox(idx));
+      grid.appendChild(tile);
+    });
+
+    const lb = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lbImg");
+    const lbCaption = document.getElementById("lbCaption");
+    const lbLeft = lb.querySelector(".lb-left");
+    const lbRight = lb.querySelector(".lb-right");
+
+    let currentIndex = 0;
+
+    function openLightbox(index) {
+      currentIndex = index;
+      updateLightbox();
+      lb.classList.add("open");
+      document.body.classList.add("no-scroll");
+    }
+
+    function closeLightbox() {
+      lb.classList.remove("open");
+      document.body.classList.remove("no-scroll");
+    }
+
+    function updateLightbox() {
+      const g = ordered[currentIndex];
+      lbImg.src = BASE + g.file;
+      lbImg.alt = g.name;
+      lbCaption.textContent = g.name;
+    }
+
+    function prev() {
+      currentIndex = (currentIndex - 1 + ordered.length) % ordered.length;
+      updateLightbox();
+    }
+
+    function next() {
+      currentIndex = (currentIndex + 1) % ordered.length;
+      updateLightbox();
+    }
+
+    lbLeft.addEventListener("click", prev);
+    lbRight.addEventListener("click", next);
+
+    lb.addEventListener("click", (e) => {
+      if (e.target.getAttribute("data-close") === "1") {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (!lb.classList.contains("open")) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+    });
+  </script>
+
+</body>
+</html>
