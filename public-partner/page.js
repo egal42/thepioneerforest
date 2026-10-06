@@ -29,7 +29,9 @@ async function shareCard(profile, record) {
   const canvas = document.createElement('canvas'); canvas.style.cssText = 'display:block;width:min(100%,520px);margin:20px 0;border-radius:14px';
   const copy = document.createElement('button'); copy.textContent = 'Copy post text';
   const copyLink = document.createElement('button'); copyLink.textContent = 'Copy public record link';
-  panel.append(tree, planet, canvas, download, copy, copyLink);
+  const templates = document.createElement('div'); templates.className = 'action-row'; templates.append(tree,planet);
+  const actions = document.createElement('div'); actions.className = 'action-row'; actions.append(download,copy,copyLink);
+  panel.append(templates,canvas,actions);
   let template = record.basis === 'trees' ? 'tree' : 'planet';
   async function render() { await drawShareCard(canvas, profile, record, template); }
   tree.addEventListener('click', () => { template = 'tree'; render(); });
@@ -154,6 +156,7 @@ function renderPool(pool, detailed = false, parent = content) {
     const box = document.createElement('div'); numbers.append(box); text(box,'small',label); text(box,'strong',units(value,pool.basis));
   }
   const bar = document.createElement('div'); bar.className = 'bar'; panel.append(bar);
+  bar.setAttribute('role','img'); bar.setAttribute('aria-label',`${Math.round(100*Number(pool.shared_units)/Number(pool.total_units))}% shared`);
   const used = document.createElement('span'); used.style.width = `${Math.min(100,100*Number(pool.shared_units)/Number(pool.total_units))}%`; bar.append(used);
   text(panel,'p',`Shared as: ${pool.basis === 'trees' ? 'Whole trees' : 'CO₂'}`);
   text(panel,'p',`${number(pool.planted_trees)} trees · ${units(pool.planted_co2_kg,'co2')} planted`);

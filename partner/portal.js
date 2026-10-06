@@ -72,8 +72,9 @@ async function refresh() {
       item(details, `Shared as: ${pool.basis === 'trees' ? 'Trees' : 'CO₂'}`);
       item(details, `${number(pool.planted_trees)} trees · ${amountText(pool.planted_co2_kg,'co2')} planted`);
       item(details, `${pool.project} · ${pool.species}`);
-      for (const url of pool.proof_urls || []) addLink(details, 'View planting proof', url);
-      addLink(details, 'Pool & records →', publicPool(pool.id)).className = 'button-link';
+      const actions = document.createElement('div'); actions.className = 'action-row'; details.append(actions);
+      for (const url of pool.proof_urls || []) addLink(actions, 'View planting proof', url).className = 'button-link';
+      addLink(actions, 'Pool & records →', publicPool(pool.id)).className = 'button-link';
       const reward = document.createElement('section'); reward.className = 'panel';
       const heading = document.createElement('h2'); heading.textContent = 'Create a Pioneer reward'; reward.append(heading);
       if (available > 0 && data.profile.status === 'active') {
@@ -99,7 +100,7 @@ async function refresh() {
     $('requests').replaceChildren();
     if (!data.requests.length) item($('requests'), 'No requests yet.');
     for (const request of data.requests)
-      item($('requests'), `${number(request.requested_pi)} Pi · ${request.basis === 'trees' ? 'Trees' : 'CO₂'} · ${request.status}`
+      item($('requests'), `${number(request.requested_pi)} Pi · ${request.basis === 'trees' ? 'Trees' : 'CO₂'} · ${{new:'Request sent',offered:'Offer ready',selected:'Offer selected',payment_pending:'Payment pending',planting_pending:'Planting pending',connected:'Pool connected',cancelled:'Cancelled'}[request.status] || request.status}`
         + (request.pool_id ? ` · verified pool ${request.pool_id}` : ''));
     $('offers').replaceChildren();
     $('offers-section').hidden = !data.offers.length;
@@ -129,14 +130,14 @@ async function refresh() {
     }
     $('rewards').replaceChildren();
     $('rewards-section').hidden = false;
-    if (!data.shares?.length) item($('rewards'), 'No rewards recorded yet. Your first reward will appear here and on the public page.');
+    if (!data.shares?.length) { item($('rewards'), 'No rewards shared yet. Your first share will appear here and on the public page.'); $('rewards').className = 'empty'; } else $('rewards').className = '';
     for (const share of data.shares || []) {
       const row = document.createElement('div'); row.className = 'pool';
       item(row, `${share.pioneer_name} · ${number(share.units)} ${share.basis === 'trees' ? 'trees' : 'kg CO₂'} · ${new Date(share.created_at).toLocaleString()}`);
       const a = document.createElement('a'); a.href = `/p/${data.profile.id}/records/${encodeURIComponent(share.id)}`;
       if (share.reason) item(row, `For: ${share.reason}`);
       addLink(row, 'View pool record', publicPool(share.pool_id)).className = 'button-link';
-      a.textContent = 'Open reward →'; row.append(a); $('rewards').append(row);
+      a.textContent = 'View record & share'; a.className = 'button-link'; row.append(a); $('rewards').append(row);
     }
   } catch (error) {
     $('workspace').hidden = true; $('signin').hidden = false; $('workspace-nav').hidden = true; $('footer').hidden = true;

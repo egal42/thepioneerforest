@@ -66,3 +66,20 @@ allocation and share-card download remain to be tested with the existing account
 No test reward, pool, planting or invitation was created. The user deferred gift
 fund accounting and GPM until OMC is working. Global TPF addition must be 25%;
 the running Windows setting is not accessible here, so restoration is unconfirmed.
+
+### Follow-up verification and design consistency
+
+A real-handler local HTTP integration test now runs with a fresh PostgreSQL-compatible
+PGlite database and the repository migrations, replacing only Netlify platform adapters.
+It covers publication, invitation activation/reuse rejection, login/logout, authenticated
+shares, retries, overspending, fractional trees, partner isolation, public proof,
+request/offer choice/verified-pool connection and durable Admin event retrieval.
+This does not verify deployed database configuration, real authentication, concurrent
+requests, or browser card downloads. Those remain online acceptance checks.
+No preview sync secret or signed-in test account is available in this workspace;
+do not bypass authentication or publish fictional planting as a verified online pool.
+
+UI fixes: dark first-load defaults, full-viewport non-repeating background, consistent
+left-aligned workspace/detail titles (centred public hero), grouped proof/card actions,
+request form controls and submit button spacing, human request statuses, and
+“Rewards shared with Pioneers” with “View record & share” action.
