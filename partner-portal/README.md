@@ -1,7 +1,7 @@
 # Live Partner Pool foundation
 
 This branch is preparation, not a live Partner Pool. The existing site and fictional
-`partner-pool-demo/` remain untouched. Do not deploy this branch as a working portal.
+`partner-pool-demo/` remain untouched. The branch deploy is a preview only.
 
 The Operations Center is the source for partner identity, branding, verified planting,
 pool ownership, and the fixed sharing basis. Its current `tpf_partner_public_setup_v1`
@@ -27,12 +27,11 @@ and Planet share card uses partner colours with a readable dark fallback. The Ad
 patch pulls online events every two minutes while Admin is open and catches up on
 opening. The online ledger retains events while Admin is closed.
 
-It is not ready to deploy. Next: verify the complete flow on an isolated Netlify
+It is not ready for production. Next: verify the complete flow on the isolated Netlify
 preview with its real database, confirm the existing site's deploy configuration,
 and check the current credit budget. Then package the Admin update without copying
 over mainnet data. Run a GPM request/offer/choice and a verified pool/share flow in
 the preview before publishing live.
-on an isolated Netlify preview. Confirm database activation and credit budget before
-deployment. No live credentials or mainnet data are kept in this repository.
+No live credentials or mainnet data are kept in this repository.
 
 Run the current unit tests with `npm test`.
