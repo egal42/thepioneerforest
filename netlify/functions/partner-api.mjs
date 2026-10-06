@@ -150,7 +150,7 @@ export default async function handler(request) {
         if (!choice.rows.length) throw new LedgerError('Choose an option from this offer');
         await client.query(`UPDATE pool_offers SET status='selected', selected_key=$2,
           selected_at=now() WHERE id=$1`, [offer.id, body.choiceKey]);
-        await client.query(`UPDATE pool_requests SET status='selected', updated_at=now()
+        await client.query(`UPDATE pool_requests SET status='payment_pending', updated_at=now()
           WHERE id=$1`, [offer.request_id]);
         await client.query(`INSERT INTO portal_events (partner_id,event_type,entity_id)
           VALUES ($1,'offer.selected',$2)`, [partnerId, offer.id]);

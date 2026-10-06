@@ -1,3 +1,4 @@
+import { updateOrder } from '../../partner-portal/orders.mjs';
 import { readPartnerWorkspace } from '../../partner-portal/workspace.mjs';
 import { getDatabase } from '@netlify/database';
 import { getStore } from '@netlify/blobs';
@@ -24,6 +25,14 @@ export default async function handler(request) {
       const data = await readPartnerWorkspace(db, partnerId);
       if (!data.profile) return reply({error:'Partner not found'},404);
       return reply({...data, readOnly:true, retrievedAt:new Date().toISOString()});
+    }
+    if (action === 'order' && request.method === 'POST') {
+      let input; try { input=JSON.parse(body); } catch { return reply({error:'Invalid request'},400); }
+      const client=await db.pool.connect();
+      try { await client.query('BEGIN'); const result=await updateOrder(client,input);
+        await client.query('COMMIT'); return reply(result);
+      } catch(error) { await client.query('ROLLBACK'); return reply({error:error.message},409); }
+      finally { client.release(); }
     }
     if (action === 'invite' && request.method === 'POST') {
       let partnerId;

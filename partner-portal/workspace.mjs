@@ -7,7 +7,7 @@ export async function readPartnerWorkspace(db, partnerId) {
         FROM partner_pools p LEFT JOIN partner_shares s ON s.pool_id = p.id
         WHERE p.partner_id = ${partnerId} GROUP BY p.id ORDER BY p.created_at DESC`;
       const requests = await db.sql`SELECT r.id, r.requested_pi, r.basis, r.message,
-        r.status, r.created_at, c.pool_id
+        r.status, r.created_at, r.payment_reference, r.payment_checked_at, c.pool_id
         FROM pool_requests r LEFT JOIN pool_request_connections c ON c.request_id = r.id
         WHERE r.partner_id = ${partnerId} ORDER BY r.created_at DESC LIMIT 100`;
       const offers = await db.sql`SELECT id, request_id, title, status, selected_key

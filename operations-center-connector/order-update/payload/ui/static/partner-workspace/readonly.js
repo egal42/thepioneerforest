@@ -1,14 +1,9 @@
 const $ = id => document.getElementById(id);
 const message = (text, bad = false) => { $('message').textContent = text; $('message').className = bad ? 'error' : 'success'; };
+const adminSnapshot = JSON.parse(document.getElementById('admin-workspace-data').textContent);
 async function api(action, body) {
-  const response = await fetch('/api/partner/' + action, {
-    method: body ? 'POST' : 'GET', credentials: 'same-origin',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Request failed');
-  return data;
+  if (action !== 'me' || body) throw new Error('Read-only Admin view: actions are disabled.');
+  return adminSnapshot;
 }
 function item(container, label) {
   const p = document.createElement('p'); p.textContent = label; container.append(p);
@@ -21,7 +16,7 @@ async function refresh() {
   $('claim').hidden = true;
   try {
     const data = await api('me');
-    $('signin').hidden = true; $('workspace').hidden = false; $('logout').hidden = false;
+    $('signin').hidden = true; $('workspace').hidden = false; $('logout').hidden = true;
     $('workspace-nav').hidden = false;
     $('header-name').textContent = data.profile.name;
     $('footer').hidden = false;
@@ -29,7 +24,7 @@ async function refresh() {
     $('public-link').hidden = data.profile.status !== 'active';
     $('public-link').href = `/p/${data.profile.id}/`;
     if (data.profile.logo_url?.startsWith(`/api/public/${data.profile.id}/logo/`)) {
-      $('header-logo').src = '/api/partner/logo';
+      $('header-logo').src = adminSnapshot.portalOrigin + data.profile.logo_url;
       $('header-logo').alt = `${data.profile.name} logo`;
       $('header-logo').hidden = false;
     } else $('header-logo').hidden = true;
@@ -47,7 +42,7 @@ async function refresh() {
     $('completed-pools').hidden = !completed.length;
     if (!active.length) item($('pools'), 'No active pools yet.');
     for (const pool of data.pools) {
-      const a = addLink(active.includes(pool) ? $('pools') : $('completed-list'), '', `/partner/?pool=${encodeURIComponent(pool.id)}`);
+      const a = addLink(active.includes(pool) ? $('pools') : $('completed-list'), '', `?pool=${encodeURIComponent(pool.id)}`);
       a.className = 'pool-tab' + (selected?.id === pool.id ? ' selected' : '');
       const small = document.createElement('small'); small.textContent = `${data.profile.name} · ${pool.basis === 'trees' ? 'Trees' : 'CO₂'}`;
       const title = document.createElement('strong'); title.textContent = poolName(pool);
@@ -68,7 +63,7 @@ async function refresh() {
       item(details, `Status: ${available > 0 ? 'Available' : 'Fully shared'}`);
       item(details, `Shared as: ${pool.basis === 'trees' ? 'Trees' : 'CO₂'}`);
       item(details, `${number(pool.planted_trees)} trees · ${amountText(pool.planted_co2_kg,'co2')} planted`);
-      item(details, `${pool.project} · ${displayPartnerSpecies(pool)}`);
+      item(details, `${pool.project} · ${pool.species}`);
       const actions = document.createElement('div'); actions.className = 'action-row'; details.append(actions);
       for (const url of pool.proof_urls || []) addLink(actions, 'View planting proof', url).className = 'button-link';
       addLink(actions, 'Pool & records →', publicPool(pool.id)).className = 'button-link';
@@ -88,7 +83,7 @@ async function refresh() {
           event.preventDefault(); button.disabled = true; pendingKey ||= crypto.randomUUID();
           try {
             const result = await api('share', {poolId:pool.id,pioneerName:pioneer.value.trim(),units:amount.value,reason:reason.value.trim(),idempotencyKey:pendingKey});
-            pendingKey = null; location.href = `/partner/?pool=${encodeURIComponent(pool.id)}&reward=${encodeURIComponent(result.share.id)}`;
+            pendingKey = null; location.href = `/p/${data.profile.id}/records/${encodeURIComponent(result.share.id)}`;
           } catch (error) { message(error.message,true); button.disabled = false; }
         }); reward.append(form);
       } else item(reward, available <= 0 ? 'This pool is fully shared. Choose another pool to continue.' : 'Sharing opens after TPF publishes the verified public page.');
@@ -155,25 +150,17 @@ async function refresh() {
     for (const share of data.shares || []) {
       const row = document.createElement('div'); row.className = 'pool';
       item(row, `${share.pioneer_name} · ${number(share.units)} ${share.basis === 'trees' ? 'trees' : 'kg CO₂'} · ${new Date(share.created_at).toLocaleString()}`);
-      const a = document.createElement('a'); a.href = `/partner/?pool=${encodeURIComponent(share.pool_id)}&reward=${encodeURIComponent(share.id)}`;
+      const a = document.createElement('a'); a.href = `/p/${data.profile.id}/records/${encodeURIComponent(share.id)}`;
       if (share.reason) item(row, `For: ${share.reason}`);
       addLink(row, 'View pool record', publicPool(share.pool_id)).className = 'button-link';
-      a.textContent = 'Card & sharing tools'; a.className = 'button-link'; row.append(a); $('rewards').append(row);
+      a.textContent = 'View record & share'; a.className = 'button-link'; row.append(a); $('rewards').append(row);
     }
-    const rewardId = new URL(location.href).searchParams.get('reward');
-    $('reward-tools').hidden = !rewardId; $('reward-tools').replaceChildren();
-    if (rewardId) {
-      const saved = data.shares.find(s => s.id === rewardId);
-      const pool = saved && data.pools.find(p => p.id === saved.pool_id);
-      if (!saved || !pool) { item($('reward-tools'),'This reward is not available in your workspace.'); }
-      else {
-        const { renderRewardTools } = await import('/partner/reward.js');
-        await renderRewardTools($('reward-tools'),data.profile,{...saved,pool_name:poolName(pool),proof_urls:pool.proof_urls || []});
-      }
-      $('reward-tools').scrollIntoView({block:'start'});
-    }
+    document.querySelectorAll('form input,form select,form textarea,form button,#offers button').forEach(node => node.disabled = true);
+    document.querySelector('#request-form').closest('details').hidden = true;
+    document.querySelectorAll('a[href^="/p/"]').forEach(a => a.href = adminSnapshot.portalOrigin + a.getAttribute('href'));
+    message('Read-only online workspace. Sharing, pool requests and offer selections are disabled.');
   } catch (error) {
-    $('workspace').hidden = true; $('signin').hidden = false; $('workspace-nav').hidden = true; $('footer').hidden = true;
+    $('workspace').hidden = true; $('signin').hidden = true; $('workspace-nav').hidden = true; $('footer').hidden = true;
     if (error.message !== 'Sign in required') message(error.message, true);
   }
 }

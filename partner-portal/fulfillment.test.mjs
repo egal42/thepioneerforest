@@ -9,7 +9,7 @@ test('a selected offer connects once to a verified pool with enough units', asyn
   try {
     for (const migration of [
       '202610060001_partner_portal_foundation', '202610060002_invitations',
-      '202610060003_offers', '202610060004_request_connections'
+      '202610060003_offers', '202610060004_request_connections', '202610060005_request_payments'
     ]) {
       await db.exec(readFileSync(new URL(`../netlify/database/migrations/${migration}/migration.sql`,
         import.meta.url), 'utf8'));
@@ -44,6 +44,8 @@ test('a selected offer connects once to a verified pool with enough units', asyn
     await assert.rejects(connectSelectedPool(db, 'omc', link), /does not match/);
     await assert.rejects(connectSelectedPool(db, 'gpm', { ...link, choiceKey: 'wrong' }),
       /does not match/);
+    await assert.rejects(connectSelectedPool(db, 'gpm', link), /does not match/);
+    await db.query("UPDATE pool_requests SET status='planting_pending',payment_reference=$2 WHERE id=$1", [requestId,'c'.repeat(64)]);
     await connectSelectedPool(db, 'gpm', link);
     await connectSelectedPool(db, 'gpm', link);
     const linked = await db.query('SELECT request_id, pool_id FROM pool_request_connections');
