@@ -177,3 +177,4 @@ body>header.public-header{padding:8px max(22px,calc((100vw - 1100px)/2));gap:25p
 
 /* Review corrections: vertically centred actions and aligned explanation columns. */
 .button-link{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;vertical-align:middle}.proof-actions .button-link{display:inline-flex}.explain-grid{align-items:stretch}.explain-grid>.panel{margin:0}.explain-grid>.panel h2{margin-top:10px}.explain-grid>div:not(.panel){display:flex;flex-direction:column;gap:10px}.explain-grid .step{margin:0;flex:1}
+.public-overview .pool-card .proof-actions .button-link{display:inline-flex;align-items:center;justify-content:center}
