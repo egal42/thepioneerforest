@@ -83,3 +83,19 @@ UI fixes: dark first-load defaults, full-viewport non-repeating background, cons
 left-aligned workspace/detail titles (centred public hero), grouped proof/card actions,
 request form controls and submit button spacing, human request statuses, and
 “Rewards shared with Pioneers” with “View record & share” action.
+
+### Sandbox design restoration (6 October, follow-up)
+
+The complete CSS string from `TPF_Partner_Integration_Test_v0_12_3/Partner_Portal/server.py`
+is now ported as `sandbox-design.css`, with selector mappings documented at its top.
+Online markup adapters preserve the stable non-repeating background, loading canvas,
+form spacing and current authenticated workflow. Public pages use the sandbox's compact
+header navigation, centred impact heading, totals note and icons, supporting colour,
+accent borders, gradients and explanation steps. Private workspace uses its selector,
+card, input and reward styling. `theme.js` reproduces the sandbox HLS supporting hue;
+OMC defaults to colourful styling as in the source, other partners retain their profile
+accent. No data is created or modified by this design port.
+
+Public deployed pages can be visually checked. The authenticated private workspace
+and populated online reward/share-card states still require a test session; the
+isolated DOM checks do not replace that visual acceptance check.

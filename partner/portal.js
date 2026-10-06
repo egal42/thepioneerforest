@@ -33,10 +33,7 @@ async function refresh() {
       $('header-logo').alt = `${data.profile.name} logo`;
       $('header-logo').hidden = false;
     } else $('header-logo').hidden = true;
-    for (const [key, value] of Object.entries(data.profile.colors || {})) {
-      if (['background', 'panel', 'accent', 'text', 'secondary'].includes(key) && /^#[a-fA-F0-9]{6}$/.test(value))
-        document.documentElement.style.setProperty('--' + (key === 'background' ? 'bg' : key), value);
-    }
+    applyPartnerTheme(data.profile.colors, data.profile.id);
     const number = value => Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 });
     const amountText = (value, basis) => `${number(value)} ${basis === 'trees' ? 'trees' : 'kg CO₂'}`;
     const poolName = pool => data.profile.id === 'omc' && pool.id === 'pool_006' ? 'OMC Welcome Pool' : pool.name;

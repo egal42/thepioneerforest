@@ -23,8 +23,8 @@ async function shareCard(profile, record) {
   const panel = card(); panel.classList.add('share-panel');
   text(panel, 'h2', 'Share this reward');
   text(panel, 'p', 'Choose a card, download it, or copy the reward text and public link.');
-  const tree = document.createElement('button'); tree.textContent = 'Tree';
-  const planet = document.createElement('button'); planet.textContent = 'Planet';
+  const tree = document.createElement('button'); tree.textContent = 'Tree'; tree.className = 'template-btn';
+  const planet = document.createElement('button'); planet.textContent = 'Planet'; planet.className = 'template-btn';
   const download = document.createElement('button'); download.textContent = 'Download share card';
   const canvas = document.createElement('canvas'); canvas.style.cssText = 'display:block;width:min(100%,520px);margin:20px 0;border-radius:14px';
   const copy = document.createElement('button'); copy.textContent = 'Copy post text';
@@ -33,7 +33,7 @@ async function shareCard(profile, record) {
   const actions = document.createElement('div'); actions.className = 'action-row'; actions.append(download,copy,copyLink);
   panel.append(templates,canvas,actions);
   let template = record.basis === 'trees' ? 'tree' : 'planet';
-  async function render() { await drawShareCard(canvas, profile, record, template); }
+  async function render() { tree.classList.toggle('on',template === 'tree'); planet.classList.toggle('on',template === 'planet'); await drawShareCard(canvas, profile, record, template); }
   tree.addEventListener('click', () => { template = 'tree'; render(); });
   planet.addEventListener('click', () => { template = 'planet'; render(); });
   download.addEventListener('click', () => {
@@ -50,24 +50,21 @@ async function shareCard(profile, record) {
   });
   await render();
 }
-function applyColors(colors) {
-  for (const [key, value] of Object.entries(colors || {})) {
-    const mapped = key === 'background' ? 'bg' : key;
-    if (['bg', 'panel', 'accent', 'text', 'secondary'].includes(mapped) && /^#[a-fA-F0-9]{6}$/.test(value))
-      document.documentElement.style.setProperty('--' + mapped, value);
-  }
-}
 async function load() {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(partnerId || '')) throw new Error('Partner page not found');
   const path = `/api/public/${partnerId}` + (recordId ? `/records/${encodeURIComponent(recordId)}` : '');
   const response = await fetch(path);
   if (!response.ok) throw new Error('This partner page is not published yet.');
   const data = await response.json();
-  applyColors(data.profile.colors);
+  applyPartnerTheme(data.profile.colors, partnerId);
+  document.body.className = recordId ? 'public-record' : poolId ? 'pool-overview' : recordsOnly ? 'public-records' : 'public-overview';
+  document.getElementById(poolId || recordsOnly || recordId ? 'records-nav' : 'pool-nav').classList.add('active');
   document.title = `${data.profile.page_title} · The Pioneer Forest`;
   document.getElementById('header-name').textContent = data.profile.name;
   document.getElementById('footer').textContent = `${data.profile.name} × The Pioneer Forest · Partner Pool`;
   const nav = document.getElementById('public-nav'); nav.hidden = false;
+  const header = document.querySelector('body > header'); header.classList.add('public-header');
+  header.insertBefore(nav, header.querySelector('.tpf-brand'));
   document.getElementById('pool-nav').href = `/p/${partnerId}/`;
   document.getElementById('records-nav').href = `/p/${partnerId}/records/`;
   status.remove();
@@ -83,7 +80,7 @@ async function load() {
   text(hero, 'h1', data.profile.page_title);
   text(hero, 'p', data.profile.tagline);
   if (recordId) {
-    link(content, '← Back to partner pools', `/p/${partnerId}/`);
+    link(content, '← Back to partner pools', `/p/${partnerId}/`).className = 'pool-back';
     const record = data.record;
     const details = document.createElement('div'); details.className = 'record-detail'; content.append(details);
     const panel = document.createElement('article'); panel.className = 'panel'; details.append(panel);
@@ -102,10 +99,10 @@ async function load() {
     details.prepend(content.lastElementChild);
     return;
   }
-  text(hero, 'p', partnerId === 'omc' && data.pools.some(p => p.id === 'pool_006') && String(data.profile.introduction || '').includes('when the first partner pool is ready') ? 'The OMC Forest Journey connects OMC with The Pioneer Forest. Explore verified planting, available CO₂ rewards and public sharing records below.' : data.profile.introduction);
+  text(hero, 'p', partnerId === 'omc' && data.pools.some(p => p.id === 'pool_006') && String(data.profile.introduction || '').includes('when the first partner pool is ready') ? 'The OMC Forest Journey connects OMC with The Pioneer Forest. Explore verified planting, available CO₂ rewards and public sharing records below.' : data.profile.introduction, 'intro');
   for (const record of data.records) record.pool_name = poolName(record);
   if (poolId || recordsOnly) {
-    link(content, '← Back to partner pools', `/p/${partnerId}/`);
+    link(content, '← Back to partner pools', `/p/${partnerId}/`).className = 'pool-back';
     if (poolId) {
       const pool = data.pools.find(p => p.id === poolId);
       if (!pool) throw new Error('Pool not found');
@@ -118,11 +115,12 @@ async function load() {
   }
   const totalTrees = data.pools.reduce((n, p) => n + Number(p.planted_trees), 0);
   const totalCo2 = data.pools.reduce((n, p) => n + Number(p.planted_co2_kg), 0);
-  text(content, 'h2', `${data.profile.name} pools at a glance`);
+  text(content, 'h2', `${data.profile.name} pools at a glance`, 'impact-title');
+  text(content, 'p', 'Totals across active and completed pools.', 'metrics-note');
   const metrics = document.createElement('div'); metrics.className = 'metrics'; content.append(metrics);
-  for (const [number, label] of [[totalTrees,'Total trees'],[`${totalCo2} kg`,'Total CO₂'],[data.pools.reduce((n,p) => n + Number(p.share_count || 0),0),'Community shares'],[data.pools.length,'Pools']]) {
-    const box = document.createElement('div'); box.className = 'panel'; metrics.append(box);
-    text(box,'strong',number); text(box,'small',label);
+  for (const [value, label] of [[`🌳 ${number(totalTrees)}`,'Total trees'],[`🌐 ${number(totalCo2)} kg`,'Total CO₂'],[`🎁 ${data.pools.reduce((n,p) => n + Number(p.share_count || 0),0)}`,'Community shares'],[data.pools.length,'Pools']]) {
+    const box = document.createElement('div'); box.className = 'panel metric'; metrics.append(box);
+    text(box,'strong',value); text(box,'small',label);
   }
   text(content, 'p', 'Explore the pools', 'section-label');
   text(content, 'h2', `${data.profile.name}'s active pools`);
@@ -141,15 +139,20 @@ async function load() {
   text(content, 'p', 'Every reward has its own public record.');
   renderRecords(data.records.slice(0,6));
   link(content,'View all records →',`/p/${partnerId}/records/`).className = 'button-link';
-  const explanation = card();
-  text(explanation,'h2','One pool. One record.');
-  text(explanation,'p','Every share is recorded against one pool and reduces its available balance. The same units cannot be shared twice.');
-  text(explanation,'p','When a pool reaches zero, it moves to completed pools. Its balance and history remain visible.');
+  const explanation = document.createElement('section'); explanation.className = 'explain-grid'; content.append(explanation);
+  const explainText = document.createElement('article'); explainText.className = 'panel'; explanation.append(explainText);
+  text(explainText,'h2','One pool. One record.');
+  text(explainText,'p','Every share is recorded against one pool and reduces its available balance. The same units cannot be shared twice.');
+  text(explainText,'p','When a pool reaches zero, it moves to completed pools. Its balance and history remain visible.');
+  const steps = document.createElement('div'); explanation.append(steps);
+  for (const [n,title,note] of [[1,'Verified planting','Every pool is backed by planting proof.'],[2,'Shared with Pioneers','Each reward belongs to one dedicated pool.'],[3,'Public records','Balances and sharing history stay visible.']]) {
+    const step = document.createElement('div'); step.className = 'step'; steps.append(step); text(step,'b',n); const words = document.createElement('div'); step.append(words); text(words,'strong',title); text(words,'small',note);
+  }
 }
 function renderPool(pool, detailed = false, parent = content) {
   const panel = document.createElement('article'); panel.className = 'panel pool-card'; parent.append(panel);
   const available = Number(pool.total_units)-Number(pool.shared_units);
-  text(panel, 'span', available > 0 ? '● Available' : '✓ Completed', 'badge');
+  text(panel, 'span', available > 0 ? '● Available' : '✓ Completed', available > 0 ? 'badge' : 'badge done');
   text(panel, detailed ? 'h2' : 'h3', poolName(pool));
   const numbers = document.createElement('div'); numbers.className = 'pool-numbers'; panel.append(numbers);
   for (const [label,value] of [['Pool total',pool.total_units],['Shared',pool.shared_units],['Available',available]]) {
