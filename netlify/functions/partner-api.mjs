@@ -1,4 +1,5 @@
 import { getDatabase } from '@netlify/database';
+import { getStore } from '@netlify/blobs';
 import { randomUUID } from 'node:crypto';
 import { createSessionToken, hashPassword, sameOrigin, sessionCookie, tokenHash, verifyPassword } from '../../partner-portal/auth.mjs';
 import { LedgerError, recordShare } from '../../partner-portal/ledger.mjs';
@@ -81,6 +82,16 @@ export default async function handler(request) {
     const partnerId = await currentPartner(request, db);
     if (!partnerId) return json({ error: 'Sign in required' }, 401);
 
+    if (action === 'logo' && request.method === 'GET') {
+      const rows = await db.sql`SELECT logo_url FROM partner_profiles WHERE id = ${partnerId}`;
+      const hash = rows[0]?.logo_url?.match(new RegExp(`^/api/public/${partnerId}/logo/([a-f0-9]{64})$`))?.[1];
+      if (!hash) return json({ error: 'Logo not found' }, 404);
+      const blob = await getStore('partner-logos').get(`${partnerId}/${hash}`, { type: 'blob' });
+      if (!blob) return json({ error: 'Logo not found' }, 404);
+      return new Response(blob, { headers: { 'content-type': blob.type,
+        'cache-control': 'private, no-store', 'x-content-type-options': 'nosniff' } });
+    }
+
     if (action === 'logout' && request.method === 'POST') {
       const cookie = request.headers.get('cookie')?.match(/(?:^|;\s*)tpf_partner_session=([a-f0-9]{64})(?:;|$)/);
       if (cookie) await db.sql`DELETE FROM partner_sessions WHERE token_hash = ${tokenHash(cookie[1])}`;
@@ -103,7 +114,11 @@ export default async function handler(request) {
         c.common_name, c.project_note, c.trees, c.co2_kg, c.price_pi
         FROM offer_choices c JOIN pool_offers o ON o.id = c.offer_id
         WHERE o.partner_id = ${partnerId} ORDER BY c.offer_id, c.price_pi`;
-      return json({ profile: profiles[0], pools, requests, offers, choices });
+      const shares = await db.sql`SELECT s.id, s.pioneer_name, s.units, s.created_at, p.basis
+        FROM partner_shares s JOIN partner_pools p ON p.id = s.pool_id
+        WHERE s.partner_id = ${partnerId} AND p.partner_id = ${partnerId}
+        ORDER BY s.created_at DESC LIMIT 100`;
+      return json({ profile: profiles[0], pools, requests, offers, choices, shares });
     }
     if (action === 'request' && request.method === 'POST') {
       const body = await bodyOf(request);

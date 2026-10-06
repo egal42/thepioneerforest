@@ -28,6 +28,14 @@ export async function drawShareCard(canvas, profile, record, template) {
   scrim.addColorStop(.65, 'rgba(4,21,36,.91)');
   scrim.addColorStop(1, 'rgba(4,21,36,0)');
   ctx.fillStyle = scrim; ctx.fillRect(100, 180, 880, 740);
+  if (profile.logo_url?.startsWith(`/api/public/${profile.id}/logo/`)) {
+    try {
+      const logo = new Image(); logo.src = profile.logo_url;
+      await logo.decode();
+      const scale = Math.min(132 / logo.naturalWidth, 132 / logo.naturalHeight);
+      ctx.drawImage(logo, 72, 70, logo.naturalWidth * scale, logo.naturalHeight * scale);
+    } catch { /* A missing logo must not prevent the record card download. */ }
+  }
   ctx.textAlign = 'center';
   ctx.fillStyle = '#f5fbf4'; ctx.font = '900 25px Arial, sans-serif';
   ctx.fillText('COMMUNITY REWARD', 540, 350);

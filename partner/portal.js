@@ -22,24 +22,28 @@ async function refresh() {
   try {
     const data = await api('me');
     $('signin').hidden = true; $('workspace').hidden = false; $('logout').hidden = false;
-    $('partner-name').textContent = data.profile.name;
-    const oldLogo = document.getElementById('partner-logo'); oldLogo?.remove();
-    if (data.profile.status === 'active' && data.profile.logo_url?.startsWith(`/api/public/${data.profile.id}/logo/`)) {
-      const logo = document.createElement('img'); logo.id = 'partner-logo'; logo.src = data.profile.logo_url;
-      logo.alt = `${data.profile.name} logo`; logo.style.cssText = 'max-width:110px;max-height:110px;object-fit:contain';
-      $('partner-name').before(logo);
-    }
+    $('workspace-nav').hidden = false;
+    $('header-name').textContent = data.profile.name;
+    $('footer').hidden = false;
+    $('footer').textContent = `${data.profile.name} × The Pioneer Forest · Partner Pool`;
+    $('public-link').hidden = data.profile.status !== 'active';
+    $('public-link').href = `/p/${data.profile.id}/`;
+    if (data.profile.logo_url?.startsWith(`/api/public/${data.profile.id}/logo/`)) {
+      $('header-logo').src = '/api/partner/logo';
+      $('header-logo').alt = `${data.profile.name} logo`;
+      $('header-logo').hidden = false;
+    } else $('header-logo').hidden = true;
     for (const [key, value] of Object.entries(data.profile.colors || {})) {
-      if (['background', 'panel', 'accent', 'text'].includes(key) && /^#[a-fA-F0-9]{6}$/.test(value))
+      if (['background', 'panel', 'accent', 'text', 'secondary'].includes(key) && /^#[a-fA-F0-9]{6}$/.test(value))
         document.documentElement.style.setProperty('--' + (key === 'background' ? 'bg' : key), value);
     }
     $('pools').replaceChildren();
-    if (!data.pools.length) item($('pools'), 'No verified pool is connected yet.');
+    if (!data.pools.length) item($('pools'), 'No active pools yet.');
     for (const pool of data.pools) {
       const card = document.createElement('div'); card.className = 'pool';
       const heading = document.createElement('h3'); heading.textContent = pool.name;
       card.append(heading);
-      item(card, `${pool.basis === 'trees' ? 'Trees' : 'CO₂ kg'} · Total ${pool.total_units} · Shared ${pool.shared_units}`);
+      item(card, `${pool.basis === 'trees' ? 'Trees' : 'CO₂'} · Total ${pool.total_units} · Shared ${pool.shared_units} · Available ${Number(pool.total_units) - Number(pool.shared_units)}`);
       if (data.profile.status === 'active') {
         const form = document.createElement('form');
         const pioneerLabel = document.createElement('label'); pioneerLabel.textContent = 'Pioneer username';
@@ -61,7 +65,7 @@ async function refresh() {
             const result = await api('share', { poolId: pool.id, pioneerName: pioneer.value.trim(),
               units: amount.value, reason: reason.value.trim(), idempotencyKey: pendingKey });
             pendingKey = null;
-            message(`Share recorded: ${result.share.id}. Public record: /p/${data.profile.id}/records/${result.share.id}`);
+            location.href = `/p/${data.profile.id}/records/${encodeURIComponent(result.share.id)}`;
             await refresh();
           } catch (error) { message(error.message, true); button.disabled = false; }
         });
@@ -75,12 +79,13 @@ async function refresh() {
       item($('requests'), `${request.requested_pi} Pi · ${request.basis === 'trees' ? 'Trees' : 'CO₂'} · ${request.status}`
         + (request.pool_id ? ` · verified pool ${request.pool_id}` : ''));
     $('offers').replaceChildren();
+    $('offers-section').hidden = !data.offers.length;
     if (!data.offers.length) item($('offers'), 'No offers yet.');
     for (const offer of data.offers) {
       const section = document.createElement('section'); section.className = 'pool';
       const heading = document.createElement('h3'); heading.textContent = offer.title;
       section.append(heading);
-      item(section, offer.status === 'selected' ? 'You selected an option. TPF will handle the next step.' : 'Choose one option. No payment or planting happens now.');
+      item(section, offer.status === 'selected' ? 'You selected an option. TPF will handle the next step.' : 'Choose the option you like. The Pi amount shown is its full offer price. Choosing an offer saves your choice; payment and planting happen later.');
       for (const choice of data.choices.filter(c => c.offer_id === offer.id)) {
         const card = document.createElement('div');
         item(card, `${choice.project} · ${choice.common_name || choice.species} · ${choice.trees} trees · ${choice.co2_kg} kg CO₂ · ${choice.price_pi} Pi final offer price`);
@@ -99,8 +104,16 @@ async function refresh() {
       }
       $('offers').append(section);
     }
+    $('rewards').replaceChildren();
+    $('rewards-section').hidden = !data.shares?.length;
+    for (const share of data.shares || []) {
+      const row = document.createElement('div'); row.className = 'pool';
+      item(row, `${share.pioneer_name} · ${share.units} ${share.basis === 'trees' ? 'trees' : 'kg CO₂'} · ${new Date(share.created_at).toLocaleString()}`);
+      const a = document.createElement('a'); a.href = `/p/${data.profile.id}/records/${encodeURIComponent(share.id)}`;
+      a.textContent = 'Open reward →'; row.append(a); $('rewards').append(row);
+    }
   } catch (error) {
-    $('workspace').hidden = true; $('signin').hidden = false; $('logout').hidden = true;
+    $('workspace').hidden = true; $('signin').hidden = false; $('workspace-nav').hidden = true; $('footer').hidden = true;
     if (error.message !== 'Sign in required') message(error.message, true);
   }
 }
