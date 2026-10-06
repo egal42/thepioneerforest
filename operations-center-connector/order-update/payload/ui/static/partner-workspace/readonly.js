@@ -114,7 +114,7 @@ async function refresh() {
             if (location.hostname.startsWith('deploy-preview-') || ['localhost','127.0.0.1'].includes(location.hostname))
               item(payment, 'Test only — please do not send Pi for this offer.');
             const memo = data.profile.id.replaceAll('-', '').slice(0,6).toUpperCase() + '-' + request.id.slice(-12).toUpperCase();
-            for (const [label,value] of [['Amount to send', `${number(choice.price_pi)} Pi`], ['TPF wallet', 'GDJQWS634MNY2XQ6FKOM6Z2PP5RQWEWLBNQICV43WI4IVWT3RC7VHD3M'], ['Put in the wallet note', memo]]) {
+            for (const [label,value] of [['Amount to send', `${String(choice.price_pi).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')} Pi`], ['TPF wallet', 'GDJQWS634MNY2XQ6FKOM6Z2PP5RQWEWLBNQICV43WI4IVWT3RC7VHD3M'], ['Put in the wallet note', memo]]) {
               const row=document.createElement('p'); row.style.overflowWrap='anywhere'; row.textContent=label+': '+value+' ';
               const copy=document.createElement('button'); copy.type='button'; copy.textContent='Copy';
               copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(label==='Amount to send'?String(choice.price_pi):value);message(label+' copied.');}catch{message('Copy unavailable. Select the displayed value.',true);}});

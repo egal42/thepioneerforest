@@ -30,7 +30,7 @@
     {
       "path": "ui/static/partner-workspace/readonly.js",
       "old_sha256": "5f4d473f446077a1ccd70ca14d5284ee67e835b7ad77a843821c511addc88df2",
-      "new_sha256": "2f1d3eef521c0a7ac6e2f6fed09c4e0a576d32b5c368b18855a68f5ef2019332",
+      "new_sha256": "f8672dee57b1c445ea1dbc5373f0e4050a39913622e61fe012f932c3fd0dacb4",
       "accepted_old_sha256": [
         "5f4d473f446077a1ccd70ca14d5284ee67e835b7ad77a843821c511addc88df2",
         null
