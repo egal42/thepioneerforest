@@ -1,3 +1,4 @@
+#content > .pool-back { display: block; width: fit-content; margin: 24px 0; }
 /* Shared partner layout adapted from the last isolated OMC design. Partner
    colours arrive from the verified local Operations Center profile. */
 [hidden]{display:none!important}

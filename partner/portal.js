@@ -196,6 +196,15 @@ $('login-form').addEventListener('submit', async event => {
     $('password').value = ''; message('Signed in.'); await refresh();
   } catch (error) { message(error.message, true); }
 });
+$('recovery-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const button=event.currentTarget.querySelector('button'); button.disabled=true;
+  try {
+    const result=await api('recover',{identification:$('recovery-identification').value,contact:$('recovery-contact').value,note:$('recovery-note').value});
+    $('recovery-form').reset(); $('recovery-status').textContent=result.message;
+  } catch(error) { $('recovery-status').textContent=error.message; }
+  finally { button.disabled=false; }
+});
 $('request-form').addEventListener('submit', async event => {
   event.preventDefault();
   try {

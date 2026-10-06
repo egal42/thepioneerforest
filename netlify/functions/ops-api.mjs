@@ -19,7 +19,17 @@ export default async function handler(request) {
 
   try {
     const db = getDatabase();
-    if (action === 'workspace' && request.method === 'GET') {
+    if (action === 'access-requests' && request.method === 'GET') {
+      const requests=await db.sql`SELECT id,identification,contact,note,status,created_at,handled_at FROM partner_access_requests ORDER BY (status='pending') DESC,created_at DESC LIMIT 100`;
+      return reply({requests});
+    }
+    if (action === 'handle-access' && request.method === 'POST') {
+      let input; try { input=JSON.parse(body); } catch { return reply({error:'Invalid request'},400); }
+      if(!/^[a-f0-9-]{36}$/.test(input.id || '')) return reply({error:'Invalid request'},400);
+      const rows=await db.sql`UPDATE partner_access_requests SET status='handled',handled_at=COALESCE(handled_at,now()) WHERE id=${input.id}::uuid RETURNING id,status`;
+      return rows.length ? reply(rows[0]) : reply({error:'Request not found'},404);
+    }
+    if (action === 'workspace'  && request.method === 'GET') {
       const partnerId = url.searchParams.get('partnerId');
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(partnerId || '')) return reply({error:'Invalid partner'},400);
       const data = await readPartnerWorkspace(db, partnerId);

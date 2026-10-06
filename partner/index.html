@@ -32,6 +32,15 @@ button:disabled{opacity:.6;cursor:wait}.muted{opacity:.8}.error{color:#ffb4b4}.s
     <label for="password">Password</label><input id="password" type="password" required autocomplete="current-password">
     <button>Sign in</button>
   </form>
+  <details class="access-recovery"><summary>Forgot password or Partner ID?</summary>
+    <p>Request help from The Pioneer Forest. The team reviews your request before sending a new invitation privately.</p>
+    <form id="recovery-form">
+      <label for="recovery-identification">Partner name or ID</label><input id="recovery-identification" maxlength="100" required>
+      <label for="recovery-contact">Your contact email or community handle</label><input id="recovery-contact" maxlength="200" required>
+      <label for="recovery-note">Message (optional — do not include a password)</label><textarea id="recovery-note" maxlength="500"></textarea>
+      <button>Request access help</button><p id="recovery-status" role="status" aria-live="polite"></p>
+    </form>
+  </details>
 </section>
 <section id="workspace" hidden>
   <section class="panel"><div class="eyebrow">Partner workspace</div><h1>Your Active Pools</h1><p class="muted">Choose a pool to see its balance and record a reward.</p><div id="pools" class="pool-tabs"></div><details id="completed-pools" hidden><summary>Completed pools</summary><div id="completed-list" class="pool-tabs"></div></details><p class="hint">Good to know: each pool has one fixed share basis, Trees or CO₂.</p></section>
