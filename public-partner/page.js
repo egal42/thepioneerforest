@@ -160,7 +160,7 @@ function renderPoolDetail(pool, profile) {
   text(title,'span',`${profile.name} · Public pool record`,'eyebrow');
   text(title,'h2',`${pool.basis === 'trees' ? '🌳' : '🌍'} ${poolName(pool)}`);
   text(title,'p','See the rewards, remaining balance, and public records for this pool.');
-  text(title,'span',available > 0 ? '● Available' : '✓ Completed',available > 0 ? 'badge' : 'badge done');
+  text(title,'span',available > 0 ? '● Available to share' : '✓ Completed',available > 0 ? 'badge' : 'badge done');
   const stats = document.createElement('div'); stats.className = 'pool-stats'; content.append(stats);
   for (const [label,value] of [['Total pool',pool.total_units],['Shared',pool.shared_units],['Remaining in pool',available]]) {
     const box = document.createElement('div'); box.className = 'panel'; stats.append(box); text(box,'strong',units(value,pool.basis)); text(box,'span',label);
@@ -197,7 +197,7 @@ function renderPool(pool, detailed = false, parent = content) {
   const available = Number(pool.total_units)-Number(pool.shared_units);
   const heading = document.createElement('div'); heading.className='card-heading'; panel.append(heading);
   const identity = document.createElement('div'); heading.append(identity); text(identity,'span',`${document.getElementById('header-name').textContent} · ${pool.basis === 'trees' ? '🌳 Tree pool' : '🌍 CO₂ pool'}`,'eyebrow');
-  text(heading, 'span', available > 0 ? '● Available' : '✓ Completed', available > 0 ? 'badge' : 'badge done');
+  text(heading, 'span', available > 0 ? '● Available to share' : '✓ Completed', available > 0 ? 'badge' : 'badge done');
   text(identity, detailed ? 'h2' : 'h3', poolName(pool));
   const numbers = document.createElement('div'); numbers.className = 'pool-numbers'; panel.append(numbers);
   for (const [label,value] of [['Pool total',pool.total_units],['Shared',pool.shared_units],['Available',available]]) {
