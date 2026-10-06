@@ -16,7 +16,7 @@ const card = () => { const node = document.createElement('article'); node.classN
 const number = value => Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 });
 const poolId = parts[2] === 'pool' ? parts[3] : null;
 const recordsOnly = parts[2] === 'records' && !recordId;
-const poolName = pool => partnerId === 'omc' && (pool.id || pool.pool_id) === 'pool_006' ? 'OMC Welcome Pool' : (pool.name || pool.pool_name);
+const poolName = pool => partnerId === 'omc' && (pool.pool_id || pool.id) === 'pool_006' ? 'OMC Welcome Pool' : (pool.name || pool.pool_name);
 const units = (value, basis) => `${number(value)} ${basis === 'trees' ? 'trees' : 'kg CO₂'}`;
 async function shareCard(profile, record) {
   const { drawShareCard } = await import('/public-partner/card.js');
