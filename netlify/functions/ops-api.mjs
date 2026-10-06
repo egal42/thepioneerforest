@@ -2,6 +2,7 @@ import { getDatabase } from '@netlify/database';
 import { getStore } from '@netlify/blobs';
 import { randomBytes } from 'node:crypto';
 import { verifySync, validatePublish, validateOffer } from '../../partner-portal/sync.mjs';
+import { connectSelectedPool } from '../../partner-portal/fulfillment.mjs';
 import { tokenHash } from '../../partner-portal/auth.mjs';
 
 const reply = (data, status = 200) => new Response(JSON.stringify(data), { status,
@@ -43,11 +44,14 @@ export default async function handler(request) {
       const rows = await db.sql`SELECT e.id, e.partner_id, e.event_type, e.entity_id, e.created_at,
         r.requested_pi, r.basis AS request_basis, r.message, r.status AS request_status,
         s.pool_id, s.pioneer_name, s.units, s.reason,
-        o.request_id AS offer_request_id, o.selected_key, c.price_pi AS selected_price_pi
+        o.request_id AS offer_request_id, o.selected_key, c.price_pi AS selected_price_pi,
+        r2.basis AS selected_basis, c.trees AS selected_trees,
+        c.co2_kg AS selected_co2_kg
         FROM portal_events e
         LEFT JOIN pool_requests r ON e.event_type = 'request.created' AND r.id = e.entity_id
         LEFT JOIN partner_shares s ON e.event_type = 'share.created' AND s.id = e.entity_id
         LEFT JOIN pool_offers o ON e.event_type = 'offer.selected' AND o.id = e.entity_id
+        LEFT JOIN pool_requests r2 ON r2.id = o.request_id
         LEFT JOIN offer_choices c ON c.offer_id = o.id AND c.choice_key = o.selected_key
         WHERE e.id > ${after} ORDER BY e.id LIMIT 100`;
       return reply({ events: rows, next: rows.length ? rows.at(-1).id : after });
@@ -90,7 +94,10 @@ export default async function handler(request) {
     let payload;
     try { payload = validatePublish(JSON.parse(body)); }
     catch { return reply({ error: 'Invalid verified partner data' }, 400); }
-    const { profile, setup, revision, logo } = payload;
+    const { profile, setup, revision, logo, connections } = payload;
+    if (connections.length && profile.status !== 'active') {
+      return reply({ error: 'A connected request needs an active verified page' }, 409);
+    }
     let logoUrl = null;
     if (logo) {
       try {
@@ -134,6 +141,9 @@ export default async function handler(request) {
           local_revision=EXCLUDED.local_revision`,
         [pool.id, profile.partnerId, pool.name, pool.basis, total, pool.plantedTrees,
           pool.plantedCo2Kg, pool.project, pool.species, JSON.stringify(pool.proofUrls), revision]);
+      }
+      for (const connection of connections) {
+        await connectSelectedPool(client, profile.partnerId, connection);
       }
       let invitation = null;
       const account = await client.query('SELECT partner_id FROM partner_accounts WHERE partner_id=$1', [profile.partnerId]);

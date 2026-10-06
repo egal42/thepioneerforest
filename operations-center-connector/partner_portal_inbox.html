@@ -23,7 +23,26 @@
     </form>{% endif %}
   {% elif event.event_type == 'offer.selected' %}
     Partner selected {{ event.selected_key }} · final price {{ event.selected_price_pi }} Pi.
-    <p>Review payment and planting in the Operations Center before publishing a verified pool.</p>
+    <p>Promised: {{ event.selected_trees if event.selected_basis == 'trees' else event.selected_co2_kg }}
+      {{ 'trees' if event.selected_basis == 'trees' else 'kg CO₂' }}.
+      Verify payment and planting in the Operations Center before connecting a pool.</p>
+    {% if connected_by_request.get(event.offer_request_id) %}
+      <p>Locally connected to {{ connected_by_request[event.offer_request_id] }}. Use Publish / sync on the partner page to retry if needed.</p>
+    {% elif connectable.get(event.id|string) %}
+      <form method="post" action="{{ url_for('partner_portal_connect_pool', partner_id=event.partner_id, request_id=event.offer_request_id) }}">
+        <label>Verified dedicated pool
+          <select name="pool_id" required>
+            <option value="">Choose the planted pool</option>
+            {% for pool in connectable[event.id|string] %}
+              <option value="{{ pool.pool_id }}">{{ pool.name }} ({{ pool.pool_id }})</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label><input type="checkbox" name="confirm_verified" value="yes" required>
+          I checked the payment, planting proof, partner ownership, and promised amount.</label>
+        <button type="submit">Connect verified pool and publish</button>
+      </form>
+    {% else %}<p>No suitable verified pool is available yet.</p>{% endif %}
   {% else %}
     {{ event.pioneer_name }} · {{ event.units }} from {{ event.pool_id }} · {{ event.reason }}
   {% endif %}

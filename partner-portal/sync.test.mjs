@@ -21,6 +21,9 @@ test('draft handoff does not require a planted pool', () => {
   const payload = validatePublish({ revision: 'a'.repeat(64), profile: { schema: 'tpf_partner_v1',
     id: 'gpm', name: 'Global Pi Market', section_title: 'GPM', status: 'draft', colors } });
   assert.equal(payload.setup, null);
+  assert.throws(() => validatePublish({ revision: 'a'.repeat(64), profile: { schema: 'tpf_partner_v1',
+    id: 'gpm', name: 'Global Pi Market', section_title: 'GPM', status: 'draft', colors },
+    connections: [{ requestId: '1'.repeat(36), poolId: 'pool-1' }] }), /connections/);
 });
 
 test('logo handoff validates content and rejects mismatched MIME', () => {

@@ -72,7 +72,8 @@ async function refresh() {
     $('requests').replaceChildren();
     if (!data.requests.length) item($('requests'), 'No requests yet.');
     for (const request of data.requests)
-      item($('requests'), `${request.requested_pi} Pi · ${request.basis === 'trees' ? 'Trees' : 'CO₂'} · ${request.status}`);
+      item($('requests'), `${request.requested_pi} Pi · ${request.basis === 'trees' ? 'Trees' : 'CO₂'} · ${request.status}`
+        + (request.pool_id ? ` · verified pool ${request.pool_id}` : ''));
     $('offers').replaceChildren();
     if (!data.offers.length) item($('offers'), 'No offers yet.');
     for (const offer of data.offers) {

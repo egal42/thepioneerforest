@@ -27,11 +27,17 @@ and Planet share card uses partner colours with a readable dark fallback. The Ad
 patch pulls online events every two minutes while Admin is open and catches up on
 opening. The online ledger retains events while Admin is closed.
 
+After a partner selects an offer, Admin can connect that request to a payment and
+planting verified dedicated pool owned by the same partner. The selected choice
+fixes the sharing basis and minimum promised units. Publication connects the pool
+and request in one database transaction. A failed publication can be retried with
+Publish / sync.
+
 It is not ready for production. Next: verify the complete flow on the isolated Netlify
 preview with its real database, confirm the existing site's deploy configuration,
-and check the current credit budget. Then package the Admin update without copying
-over mainnet data. Run a GPM request/offer/choice and a verified pool/share flow in
-the preview before publishing live.
+and check the current credit budget. Package the Admin update without copying over
+mainnet data. Run a GPM request/offer/choice and a verified pool/share flow against
+the deployed preview before publishing live.
 No live credentials or mainnet data are kept in this repository.
 
 Run the current unit tests with `npm test`.

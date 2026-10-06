@@ -17,7 +17,7 @@ class SyncError(Exception):
     pass
 
 
-def build_payload(partner, pools, assets_dir, make_export):
+def build_payload(partner, pools, assets_dir, make_export, connections=None):
     """Use the Admin's existing proof-checked export, never its balance fields."""
     if partner.get("schema") != "tpf_partner_v1":
         raise SyncError("Invalid local partner")
@@ -40,10 +40,16 @@ def build_payload(partner, pools, assets_dir, make_export):
             raise SyncError("Partner logo must be under 2 MB")
         kind = {".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp"}[Path(logo_name).suffix]
         logo = {"contentType": kind, "data": base64.b64encode(content).decode("ascii")}
-    raw = json.dumps({"profile": profile, "setup": setup, "logo": logo}, sort_keys=True,
+    connections = connections or []
+    pool_ids = {pool["pool_id"] for pool in pools}
+    if any(item.get("poolId") not in pool_ids for item in connections):
+        raise SyncError("A connected request needs its verified pool in this publication")
+    raw = json.dumps({"profile": profile, "setup": setup, "logo": logo,
+                      "connections": connections}, sort_keys=True,
                      ensure_ascii=False, separators=(",", ":"))
     revision = hashlib.sha256(raw.encode("utf-8")).hexdigest()
-    return {"profile": profile, "setup": setup, "logo": logo, "revision": revision}
+    return {"profile": profile, "setup": setup, "logo": logo,
+            "connections": connections, "revision": revision}
 
 
 def signed_request(base_url, secret, method, path, payload=None, opener=None):
@@ -68,8 +74,9 @@ def signed_request(base_url, secret, method, path, payload=None, opener=None):
         raise SyncError("Portal sync failed: {}".format(exc)) from exc
 
 
-def publish_partner(base_url, secret, partner, pools, assets_dir, make_export, opener=None):
-    payload = build_payload(partner, pools, assets_dir, make_export)
+def publish_partner(base_url, secret, partner, pools, assets_dir, make_export, opener=None,
+                    connections=None):
+    payload = build_payload(partner, pools, assets_dir, make_export, connections)
     return signed_request(base_url, secret, "POST", "/api/ops/publish", payload, opener)
 
 

@@ -21,10 +21,29 @@ export function validatePublish(payload) {
   const profile = validateDraftProfile(payload?.profile);
   const setup = payload.setup == null ? null : validateSetup(payload.setup);
   if (setup && setup.partnerId !== profile.partnerId) throw new Error('Partner IDs differ');
+  if (profile.status === 'active' && !setup) throw new Error('An active page needs verified planting');
   const revision = String(payload.revision || '');
   if (!/^[a-f0-9]{64}$/.test(revision)) throw new Error('Invalid revision');
   const logo = validateLogo(payload.logo);
-  return { profile, setup, revision, logo };
+  const connections = payload.connections == null ? [] : payload.connections;
+  if (!Array.isArray(connections) || connections.length > 100 || (connections.length && !setup)) {
+    throw new Error('Invalid request connections');
+  }
+  const poolIds = new Set(setup?.pools.map(pool => pool.id) || []);
+  const seenRequests = new Set();
+  const seenPools = new Set();
+  for (const connection of connections) {
+    if (!/^[a-f0-9-]{36}$/.test(connection?.requestId || '')
+        || !/^[a-f0-9]{32}$/.test(connection?.offerId || '')
+        || !String(connection?.choiceKey || '').trim()
+        || !poolIds.has(connection?.poolId)
+        || seenRequests.has(connection.requestId) || seenPools.has(connection.poolId)) {
+      throw new Error('Invalid request connection');
+    }
+    seenRequests.add(connection.requestId);
+    seenPools.add(connection.poolId);
+  }
+  return { profile, setup, revision, logo, connections };
 }
 
 function validateLogo(value) {
