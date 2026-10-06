@@ -18,3 +18,10 @@ function applyPartnerTheme(colors, partnerId) {
   }
   document.documentElement.style.setProperty('--spark',spark);
 }
+
+// Confirmed common name from the OMC planting; other species keep their supplied name.
+function displayPartnerSpecies(pool) {
+  const latin = String(pool.species || '').trim();
+  const common = pool.common_name || (latin.toLowerCase() === 'bruguiera gymnorhiza' ? 'Black mangrove' : '');
+  return common && common.toLowerCase() !== latin.toLowerCase() ? `${common} (${latin})` : latin;
+}

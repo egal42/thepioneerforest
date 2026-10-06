@@ -2,7 +2,7 @@ import { drawShareCard } from '/public-partner/card.js';
 const text=(parent,tag,value,className)=>{const n=document.createElement(tag);n.textContent=value;if(className)n.className=className;parent.append(n);return n;};
 export async function renderRewardTools(parent,profile,record) {
   const amount=Number(record.units).toLocaleString(undefined,{maximumFractionDigits:3});
-  const unit=record.basis === 'trees' ? 'trees' : 'kg CO₂';
+  const unit=record.basis === 'trees' ? (Number(record.units) === 1 ? 'tree' : 'trees') : 'kg CO₂';
   const publicUrl=new URL(`/p/${profile.id}/records/${encodeURIComponent(record.id)}`,location.origin).href;
   text(parent,'h2','Share this reward'); text(parent,'p','Card, details and message come from the saved reward. These tools do not create another share.');
   const grid=document.createElement('div');grid.className='reward-grid';parent.append(grid);
@@ -21,7 +21,8 @@ export async function renderRewardTools(parent,profile,record) {
   const copyDetails=text(actions,'button','Copy reward details'),copyLink=text(actions,'button','Copy public record link');
   text(info,'h3','Share with your community');const post=document.createElement('div');post.className='reward-output';info.append(post);
   const proof=(record.proof_urls || []).map(url=>`Planting proof: ${url}`).join('\n');
-  const message=`${profile.name} shared ${amount} ${unit} with ${record.pioneer_name} through The Pioneer Forest.\nPool: ${record.pool_name}${record.reason ? `\nFor: ${record.reason}` : ''}\nPublic record: ${publicUrl}${proof ? `\n${proof}` : ''}`;
+  const message=`${profile.name} shared ${record.basis === 'trees' ? `${amount} ${unit}` : `a ${amount} ${unit} reward`} with ${record.pioneer_name} from the ${record.pool_name}, in partnership with The Pioneer Forest.${record.reason ? `\nFor: ${record.reason}` : ''}\nPublic record: ${publicUrl}${proof ? `\n${proof}` : ''}`;
+  if (location.hostname.startsWith('deploy-preview-')) text(post,'p','This record link is on the test preview. Use it for testing; the production page still needs verification.','muted');
   text(post,'pre',message);const copy=text(post,'button','Copy post text');
   let template=record.basis === 'trees' ? 'tree' : 'planet';
   let drawing=false;

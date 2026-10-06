@@ -21,7 +21,7 @@ const units = (value, basis) => `${number(value)} ${basis === 'trees' ? 'trees' 
 async function shareCard(profile, record) {
   const { drawShareCard } = await import('/public-partner/card.js');
   const panel = card(); panel.classList.add('share-panel','public-card-preview');
-  const canvas = document.createElement('canvas'); canvas.setAttribute('aria-label',`${units(record.units,record.basis)} shared with ${record.pioneer_name}`);
+  const canvas = document.createElement('canvas'); canvas.setAttribute('aria-label',`${record.basis === 'trees' ? '🌳' : '🌍'} ${units(record.units,record.basis)} shared with ${record.pioneer_name}`);
   canvas.style.cssText='display:block;width:100%;border-radius:14px'; panel.append(canvas);
   await drawShareCard(canvas,profile,record,record.basis === 'trees' ? 'tree' : 'planet');
 }
@@ -55,10 +55,10 @@ async function load() {
   text(hero, 'h1', data.profile.page_title);
   text(hero, 'p', data.profile.tagline);
   if (recordId) {
-    link(content, '← Back to partner pools', `/p/${partnerId}/`).className = 'pool-back';
+    link(content, `← Back to ${data.profile.name} pools`, `/p/${partnerId}/`).className = 'pool-back';
     const record = data.record;
     text(content,'span','Public reward record','eyebrow');
-    text(content,'h2',`${units(record.units,record.basis)} shared with ${record.pioneer_name}`);
+    text(content,'h2',`${record.basis === 'trees' ? '🌳' : '🌍'} ${units(record.units,record.basis)} shared with ${record.pioneer_name}`);
     const details = document.createElement('div'); details.className = 'record-detail public-record-grid'; content.append(details);
     const panel = document.createElement('article'); panel.className = 'panel'; details.append(panel);
     record.pool_name = poolName(record);
@@ -74,7 +74,7 @@ async function load() {
   text(hero, 'p', partnerId === 'omc' && data.pools.some(p => p.id === 'pool_006') && String(data.profile.introduction || '').includes('when the first partner pool is ready') ? 'The OMC Forest Journey connects OMC with The Pioneer Forest. Explore verified planting, available CO₂ rewards and public sharing records below.' : data.profile.introduction, 'intro');
   for (const record of data.records) record.pool_name = poolName(record);
   if (poolId || recordsOnly) {
-    link(content, '← Back to partner pools', `/p/${partnerId}/`).className = 'pool-back';
+    link(content, `← Back to ${data.profile.name} pools`, `/p/${partnerId}/`).className = 'pool-back';
     if (poolId) {
       const pool = data.pools.find(p => p.id === poolId);
       if (!pool) throw new Error('Pool not found');
@@ -82,7 +82,7 @@ async function load() {
       const history = document.createElement('section'); history.className = 'pool-history'; content.append(history);
       text(history, 'h2', 'Pool sharing history');
       const records = data.records.filter(r => r.pool_id === poolId);
-      text(history,'p',`${units(pool.shared_units,pool.basis)} shared across ${records.length} records.`);
+      text(history,'p',`${units(pool.shared_units,pool.basis)} shared across ${records.length} ${records.length === 1 ? 'record' : 'records'}.`);
       renderRecords(records,history);
     } else { text(content,'span','All rewards','eyebrow'); text(content, 'h2', `${data.profile.name} share records`); text(content,'p','Find a reward and see which pool it came from.'); renderRecordsTable(data.records); }
     if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView({block:'center'});
@@ -148,12 +148,12 @@ function renderPoolDetail(pool, profile) {
   const used = document.createElement('span'); used.style.width=`${percent}%`; bar.append(used);
   const info = document.createElement('div'); info.className='pool-info'; content.append(info);
   const backing = document.createElement('section'); backing.className='panel'; info.append(backing); text(backing,'h2','Pool backing');
-  detailList(backing,[['Trees planted',number(pool.planted_trees)],['CO₂ backing',units(pool.planted_co2_kg,'co2')],['Project',pool.project],['Species',pool.species]]);
+  detailList(backing,[['Trees planted',number(pool.planted_trees)],['CO₂ backing',units(pool.planted_co2_kg,'co2')],['Project',pool.project],['Species',displayPartnerSpecies(pool)]]);
   const proof = document.createElement('div'); proof.className='proof-actions'; backing.append(proof);
   for (const url of pool.proof_urls || []) link(proof,'View planting proof',url).className='button-link';
   const about = document.createElement('section'); about.className='panel'; info.append(about); text(about,'h2','About this pool');
   detailList(about,[['Partner',profile.name],['Pool',poolName(pool)],['Shared as',pool.basis === 'trees' ? 'Trees' : 'CO₂'],['Status',available > 0 ? 'Available' : 'Completed']]);
-  text(about,'p',`Pool ID: ${pool.id}`,'muted'); text(about,'p','A share reduces the balance once. Completed pools and records remain visible.','notice');
+  text(about,'p',`Pool reference: ${pool.id}`,'muted'); text(about,'p','A share reduces the balance once. Completed pools and records remain visible.','notice');
 }
 function renderRecordsTable(records) {
   if (!records.length) { text(content,'p','No shares recorded yet.','empty'); return; }
@@ -184,8 +184,8 @@ function renderPool(pool, detailed = false, parent = content) {
   const backing = document.createElement('div'); backing.className = 'pool-details'; panel.append(backing);
   text(backing,'p',`Shared as: ${pool.basis === 'trees' ? 'Whole trees' : 'CO₂'}`);
   text(backing,'p',`${number(pool.planted_trees)} trees · ${units(pool.planted_co2_kg,'co2')} planted`);
-  text(backing,'p',`${pool.project} · ${pool.species}`);
-  if (detailed) text(panel,'p',`Pool ID: ${pool.id}`,'muted');
+  text(backing,'p',`${pool.project} · ${displayPartnerSpecies(pool)}`);
+  if (detailed) text(panel,'p',`Pool reference: ${pool.id}`,'muted');
   const actions = document.createElement('div'); actions.className = 'proof-actions'; panel.append(actions);
   if (!detailed) link(actions,'Pool & records →',`/p/${partnerId}/pool/${encodeURIComponent(pool.id)}`).className = 'button-link primary';
   for (const url of pool.proof_urls || []) link(actions,'View planting proof',url).className = 'button-link';
@@ -195,14 +195,14 @@ function renderRecords(records,parent = content) {
   if (!records.length) text(list,'p','No shares recorded yet.','empty');
   for (const record of records) {
     const panel = document.createElement('article'); panel.className='reward-row reward-record'; list.append(panel); panel.id = record.id;
-    text(panel,'strong',`${units(record.units,record.basis)} shared with ${record.pioneer_name}`);
+    text(panel,'strong',`${record.basis === 'trees' ? '🌳' : '🌍'} ${units(record.units,record.basis)} shared with ${record.pioneer_name}`);
     text(panel,'p',record.reason ? `For: ${record.reason}` : 'Community reward');
     const details = document.createElement('details'); panel.append(details); text(details,'summary','Record details');
     text(details,'p',`Date: ${new Date(record.created_at).toLocaleString()}`);
     text(details,'p',`Record ID: ${record.id}`); text(details,'p',`From: ${record.pool_name}`);
     const actions = document.createElement('div'); actions.className = 'proof-actions'; details.append(actions);
     link(actions,'View pool record',`/p/${partnerId}/pool/${encodeURIComponent(record.pool_id)}`).className = 'button-link';
-    link(panel,'View record & share card →',`/p/${partnerId}/records/${encodeURIComponent(record.id)}`).className = 'button-link';
+    link(panel,'View public record →',`/p/${partnerId}/records/${encodeURIComponent(record.id)}`).className = 'button-link';
   }
 
 }
