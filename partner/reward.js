@@ -28,7 +28,12 @@ export async function renderRewardTools(parent,profile,record) {
   let drawing=false;
   async function render(){drawing=true;download.disabled=true;tree.classList.toggle('on',template==='tree');planet.classList.toggle('on',template==='planet');try{await drawShareCard(canvas,profile,record,template);}finally{drawing=false;download.disabled=false;}}
   tree.addEventListener('click',async()=>{if(!drawing){template='tree';await render();}});planet.addEventListener('click',async()=>{if(!drawing){template='planet';await render();}});
-  download.addEventListener('click',()=>{const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=`${record.id}-${template}.png`;a.click();});
-  for(const [button,value] of [[copy,message],[copyLink,publicUrl],[copyDetails,lines.join('\n')]])button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(value);button.textContent='Copied';}catch{button.textContent='Copy unavailable — select the text above';}});
+  download.addEventListener('click',()=>{const a=document.createElement('a');a.href=canvas.toDataURL('image/png');const safe=value=>String(value).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70) || 'reward'; a.download=`${safe(record.pool_name)}_${safe(String(Number(record.units)))}-${record.basis === 'trees' ? 'trees' : 'kg-CO2'}_${safe(record.pioneer_name)}_${safe(record.created_at.slice(0,10))}_${template}_${safe(record.id.slice(0,8))}.png`;a.click();});
+  for(const [button,value] of [[copy,message],[copyLink,publicUrl],[copyDetails,lines.join('\n')]]) {
+    const label=button.textContent; let feedbackTimer;
+    button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(value);button.textContent='Copied ✓';}catch{button.textContent='Copy unavailable — select the text above';}
+      clearTimeout(feedbackTimer); feedbackTimer=setTimeout(()=>{button.textContent=label;},1500);
+    });
+  }
   await render();
 }
