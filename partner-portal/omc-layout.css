@@ -1,5 +1,6 @@
 /* Shared partner layout adapted from the last isolated OMC design. Partner
    colours arrive from the verified local Operations Center profile. */
+[hidden]{display:none!important}
 body{background:radial-gradient(circle at 8% -5%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 32%),radial-gradient(circle at 93% 12%,color-mix(in srgb,var(--secondary,var(--line)) 34%,transparent),transparent 28%),var(--bg)}
 header{max-width:none;padding:14px max(22px,calc((100vw - 1080px)/2));display:flex;align-items:center;justify-content:space-between;gap:20px;background:color-mix(in srgb,var(--bg) 89%,black);border-bottom:1px solid #ffffff20}
 .brand{display:flex;align-items:center;gap:16px}.brand img{width:72px;height:64px;object-fit:contain}.brand strong,.brand small,.tpf-brand small{display:block}.brand small{font-size:.75rem;opacity:.75}.tpf-brand{border-left:1px solid #ffffff30;padding-left:22px;text-align:right;font-size:.72rem;letter-spacing:.1em;font-weight:800}.tpf-brand small{color:var(--accent);letter-spacing:0;margin-top:5px}
