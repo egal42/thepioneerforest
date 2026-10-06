@@ -69,7 +69,7 @@ async function load() {
   document.getElementById('pool-nav').href = `/p/${partnerId}/`;
   document.getElementById('records-nav').href = `/p/${partnerId}/records/`;
   status.remove();
-  const hero = document.createElement('div'); hero.className = 'hero'; content.append(hero);
+  const hero = document.createElement('div'); hero.className = 'hero'; hero.hidden = Boolean(recordId || poolId || recordsOnly); content.append(hero);
   if (data.profile.logo_url?.startsWith(`/api/public/${partnerId}/logo/`)) {
     const image = document.createElement('img'); image.src = data.profile.logo_url;
     image.alt = `${data.profile.name} logo`; image.style.cssText = 'max-width:160px;max-height:160px;object-fit:contain';

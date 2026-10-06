@@ -41,3 +41,28 @@ the deployed preview before publishing live.
 No live credentials or mainnet data are kept in this repository.
 
 Run the current unit tests with `npm test`.
+
+## Current preview handover — 6 October 2026
+
+Continue from `live-partner-portal-foundation` / PR #1; do not replace main.
+The isolated Netlify preview is `https://deploy-preview-1--thepioneerforest.netlify.app`.
+OMC is published there with verified pool_006 (2 trees / 200 kg CO₂), zero shares
+at this check, and public Tree-Nation proof. Public `/p/omc` is separate from the
+Windows Admin's `/partners/omc/preview`, which always remains local.
+
+The sandbox pool selector, selected-pool reward workspace, completed pools,
+public pool/history routes, separate records list, and reward/card links are now
+connected to the online authenticated API and ledger. The header logo sizing is
+fixed. OMC pool_006 displays as OMC Welcome Pool without rewriting its stored
+identifier or planting/ledger facts. Existing account, sessions, invitation,
+requests, and pool data are preserved. The old pre-pool OMC introduction is
+replaced for public display once pool_006 exists.
+
+Verification: 17 backend tests passed; DOM fixture checks covered active and
+completed selection, reward form limit, pool-specific history and all-record
+navigation without writing real shares. Check the deployed public overview,
+pool and records pages in a browser after deployment. Actual authenticated OMC
+allocation and share-card download remain to be tested with the existing account.
+No test reward, pool, planting or invitation was created. The user deferred gift
+fund accounting and GPM until OMC is working. Global TPF addition must be 25%;
+the running Windows setting is not accessible here, so restoration is unconfirmed.
