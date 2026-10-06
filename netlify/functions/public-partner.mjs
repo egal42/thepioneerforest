@@ -18,7 +18,7 @@ export default async function handler(request) {
     if (!profiles.length) return json({ error: 'Not found' }, 404);
     const pools = await db.sql`SELECT p.id, p.name, p.basis, p.total_units, p.planted_trees,
       p.planted_co2_kg, p.project, p.species, p.proof_urls,
-      COALESCE(SUM(s.units),0)::text AS shared_units
+      COALESCE(SUM(s.units),0)::text AS shared_units, COUNT(s.id)::text AS share_count
       FROM partner_pools p LEFT JOIN partner_shares s ON s.pool_id = p.id
       WHERE p.partner_id = ${partnerId} GROUP BY p.id ORDER BY p.created_at DESC`;
     if (!pools.length) return json({ error: 'Not published' }, 404);

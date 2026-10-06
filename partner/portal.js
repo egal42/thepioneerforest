@@ -37,46 +37,69 @@ async function refresh() {
       if (['background', 'panel', 'accent', 'text', 'secondary'].includes(key) && /^#[a-fA-F0-9]{6}$/.test(value))
         document.documentElement.style.setProperty('--' + (key === 'background' ? 'bg' : key), value);
     }
-    $('pools').replaceChildren();
-    if (!data.pools.length) item($('pools'), 'No active pools yet.');
+    const number = value => Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 });
+    const amountText = (value, basis) => `${number(value)} ${basis === 'trees' ? 'trees' : 'kg CO₂'}`;
+    const poolName = pool => data.profile.id === 'omc' && pool.id === 'pool_006' ? 'OMC Welcome Pool' : pool.name;
+    const publicPool = id => `/p/${data.profile.id}/pool/${encodeURIComponent(id)}`;
+    const addLink = (parent, label, href) => { const a = document.createElement('a'); a.textContent = label; a.href = href; parent.append(a); return a; };
+    const active = data.pools.filter(p => Number(p.total_units) > Number(p.shared_units));
+    const completed = data.pools.filter(p => Number(p.total_units) <= Number(p.shared_units));
+    const requestedPool = new URL(location.href).searchParams.get('pool');
+    const selected = data.pools.find(p => p.id === requestedPool) || active[0] || completed[0];
+    $('pools').replaceChildren(); $('completed-list').replaceChildren(); $('selected-workspace').replaceChildren();
+    $('completed-pools').hidden = !completed.length;
+    if (!active.length) item($('pools'), 'No active pools yet.');
     for (const pool of data.pools) {
-      const card = document.createElement('div'); card.className = 'pool';
-      const heading = document.createElement('h3'); heading.textContent = pool.name;
-      card.append(heading);
-      item(card, `${pool.basis === 'trees' ? 'Trees' : 'CO₂'} · Total ${pool.total_units} · Shared ${pool.shared_units} · Available ${Number(pool.total_units) - Number(pool.shared_units)}`);
-      if (data.profile.status === 'active') {
-        const form = document.createElement('form');
-        const pioneerLabel = document.createElement('label'); pioneerLabel.textContent = 'Pioneer username';
-        const pioneer = document.createElement('input'); pioneer.required = true; pioneer.maxLength = 80;
-        pioneerLabel.append(pioneer);
-        const amountLabel = document.createElement('label'); amountLabel.textContent = `Amount (${pool.basis === 'trees' ? 'trees' : 'kg CO₂'})`;
-        const amount = document.createElement('input'); amount.type = 'number'; amount.min = pool.basis === 'trees' ? '1' : '0.001';
-        amount.step = pool.basis === 'trees' ? '1' : '0.001'; amount.required = true;
-        amountLabel.append(amount);
-        const reasonLabel = document.createElement('label'); reasonLabel.textContent = 'Reason (optional)';
-        const reason = document.createElement('textarea'); reason.maxLength = 500; reasonLabel.append(reason);
-        const button = document.createElement('button'); button.textContent = 'Record share';
-        form.append(pioneerLabel, amountLabel, reasonLabel, button);
+      const a = addLink(active.includes(pool) ? $('pools') : $('completed-list'), '', `/partner/?pool=${encodeURIComponent(pool.id)}`);
+      a.className = 'pool-tab' + (selected?.id === pool.id ? ' selected' : '');
+      const small = document.createElement('small'); small.textContent = `${data.profile.name} · ${pool.basis === 'trees' ? 'Trees' : 'CO₂'}`;
+      const title = document.createElement('strong'); title.textContent = poolName(pool);
+      const remaining = document.createElement('small'); remaining.textContent = `${amountText(Number(pool.total_units) - Number(pool.shared_units), pool.basis)} available`;
+      a.append(small, title, remaining);
+    }
+    if (selected) {
+      const pool = selected;
+      const available = Number(pool.total_units) - Number(pool.shared_units);
+      const details = document.createElement('section'); details.className = 'panel';
+      const eyebrow = document.createElement('div'); eyebrow.className = 'eyebrow'; eyebrow.textContent = 'Selected pool'; details.append(eyebrow);
+      const title = document.createElement('h2'); title.textContent = poolName(pool); details.append(title);
+      const metrics = document.createElement('div'); metrics.className = 'pool-numbers'; details.append(metrics);
+      for (const [label, value] of [['Pool total',pool.total_units],['Shared',pool.shared_units],['Available',available]]) {
+        const box = document.createElement('div'); box.textContent = label;
+        const strong = document.createElement('strong'); strong.textContent = amountText(value,pool.basis); box.append(strong); metrics.append(box);
+      }
+      item(details, `Status: ${available > 0 ? 'Available' : 'Fully shared'}`);
+      item(details, `Shared as: ${pool.basis === 'trees' ? 'Trees' : 'CO₂'}`);
+      item(details, `${number(pool.planted_trees)} trees · ${amountText(pool.planted_co2_kg,'co2')} planted`);
+      item(details, `${pool.project} · ${pool.species}`);
+      for (const url of pool.proof_urls || []) addLink(details, 'View planting proof', url);
+      addLink(details, 'Pool & records →', publicPool(pool.id)).className = 'button-link';
+      const reward = document.createElement('section'); reward.className = 'panel';
+      const heading = document.createElement('h2'); heading.textContent = 'Create a Pioneer reward'; reward.append(heading);
+      if (available > 0 && data.profile.status === 'active') {
+        const form = document.createElement('form'); form.className = 'share-form';
+        const field = (label, element) => { const node = document.createElement('label'); node.textContent = label; node.append(element); form.append(node); return element; };
+        const pioneer = field('Pioneer Pi username', document.createElement('input')); pioneer.required = true; pioneer.maxLength = 80; pioneer.placeholder = 'e.g. pioneer123';
+        const amount = field(`Amount (${pool.basis === 'trees' ? 'whole trees' : 'kg CO₂'})`, document.createElement('input'));
+        amount.type = 'number'; amount.min = pool.basis === 'trees' ? '1' : '0.001'; amount.step = pool.basis === 'trees' ? '1' : '0.001'; amount.max = String(available); amount.required = true;
+        const reason = field('Reason (optional)', document.createElement('textarea')); reason.maxLength = 500; reason.rows = 2; reason.placeholder = 'e.g. Forest Journey reward';
+        item(form, 'This records the reward, reduces the pool balance, and adds a public record.');
+        const button = document.createElement('button'); button.textContent = 'Record reward for Pioneer →'; form.append(button);
         let pendingKey;
         form.addEventListener('submit', async event => {
-          event.preventDefault(); button.disabled = true;
-          pendingKey ||= crypto.randomUUID();
+          event.preventDefault(); button.disabled = true; pendingKey ||= crypto.randomUUID();
           try {
-            const result = await api('share', { poolId: pool.id, pioneerName: pioneer.value.trim(),
-              units: amount.value, reason: reason.value.trim(), idempotencyKey: pendingKey });
-            pendingKey = null;
-            location.href = `/p/${data.profile.id}/records/${encodeURIComponent(result.share.id)}`;
-            await refresh();
-          } catch (error) { message(error.message, true); button.disabled = false; }
-        });
-        card.append(form);
-      } else item(card, 'Sharing opens after TPF publishes the verified public page.');
-      $('pools').append(card);
+            const result = await api('share', {poolId:pool.id,pioneerName:pioneer.value.trim(),units:amount.value,reason:reason.value.trim(),idempotencyKey:pendingKey});
+            pendingKey = null; location.href = `/p/${data.profile.id}/records/${encodeURIComponent(result.share.id)}`;
+          } catch (error) { message(error.message,true); button.disabled = false; }
+        }); reward.append(form);
+      } else item(reward, available <= 0 ? 'This pool is fully shared. Choose another pool to continue.' : 'Sharing opens after TPF publishes the verified public page.');
+      $('selected-workspace').append(details,reward);
     }
     $('requests').replaceChildren();
     if (!data.requests.length) item($('requests'), 'No requests yet.');
     for (const request of data.requests)
-      item($('requests'), `${request.requested_pi} Pi · ${request.basis === 'trees' ? 'Trees' : 'CO₂'} · ${request.status}`
+      item($('requests'), `${number(request.requested_pi)} Pi · ${request.basis === 'trees' ? 'Trees' : 'CO₂'} · ${request.status}`
         + (request.pool_id ? ` · verified pool ${request.pool_id}` : ''));
     $('offers').replaceChildren();
     $('offers-section').hidden = !data.offers.length;
@@ -105,11 +128,14 @@ async function refresh() {
       $('offers').append(section);
     }
     $('rewards').replaceChildren();
-    $('rewards-section').hidden = !data.shares?.length;
+    $('rewards-section').hidden = false;
+    if (!data.shares?.length) item($('rewards'), 'No rewards recorded yet. Your first reward will appear here and on the public page.');
     for (const share of data.shares || []) {
       const row = document.createElement('div'); row.className = 'pool';
-      item(row, `${share.pioneer_name} · ${share.units} ${share.basis === 'trees' ? 'trees' : 'kg CO₂'} · ${new Date(share.created_at).toLocaleString()}`);
+      item(row, `${share.pioneer_name} · ${number(share.units)} ${share.basis === 'trees' ? 'trees' : 'kg CO₂'} · ${new Date(share.created_at).toLocaleString()}`);
       const a = document.createElement('a'); a.href = `/p/${data.profile.id}/records/${encodeURIComponent(share.id)}`;
+      if (share.reason) item(row, `For: ${share.reason}`);
+      addLink(row, 'View pool record', publicPool(share.pool_id)).className = 'button-link';
       a.textContent = 'Open reward →'; row.append(a); $('rewards').append(row);
     }
   } catch (error) {
