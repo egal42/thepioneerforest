@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block content %}
+<p><a href="{{ url_for('partners_home') }}">← Partner Pools</a></p>
+<h2>{{ partner.name }}</h2>
+<p><strong>Partner ID for sign-in:</strong> {{ partner.login_id or ('gpm' if partner.id == 'global-pi-market' else partner.id) }} · <strong>Page ID:</strong> {{ partner.id }}</p>
+<p><strong>Page:</strong> {{ partner.section_title }} · <strong>Status:</strong> {{ 'published' if partner.status == 'active' else 'local draft' }}</p>
+<p><a href="{{ url_for('partner_edit', partner_id=partner.id) }}">Edit page and branding</a> · <a href="{{ url_for('partner_preview', partner_id=partner.id) }}">Preview page</a></p>
+<p><a href="{{ url_for('partner_public_export', partner_id=partner.id) }}">Download public setup preview</a><br>
+<small>Only available after a verified partner pool is planted. This ZIP contains no live shares or balances.</small></p>
+<section style="border:1px solid #ccc;padding:16px;margin:16px 0">
+  <h3>Online Partner Pool connection</h3>
+  {% if portal_ready %}
+    <p><a class="button" href="{{ url_for('partner_workspace_readonly', partner_id=partner.id) }}">View workspace · read only</a></p>
+    <form method="post" action="{{ url_for('partner_portal_sync', partner_id=partner.id) }}">
+      <button type="submit">Publish / sync {{ partner.name }}</button>
+    </form>
+    <p>Publish the branded page and partner workspace before planting. Pool figures and rewards appear only after verified dedicated planting is connected.</p>
+    {% if partner.status == 'active' and sync_state.synced_at %}<p><a href="{{ portal_public_url }}" target="_blank" rel="noopener">View online partner page →</a></p>{% endif %}
+  {% else %}<p>Connection is not configured yet. Nothing has been sent online.</p>{% endif %}
+  {% if sync_state.synced_at %}<p>Last synced: {{ sync_state.synced_at }} · {{ sync_state.published_pools }} verified pools.</p>{% endif %}
+  {% if sync_state.invitation_url %}<p>One-time partner invitation: <a id="partner-invitation-link" href="{{ sync_state.invitation_url }}">{{ sync_state.invitation_url }}</a><br>
+    <button id="copy-partner-invitation" type="button">Copy invitation link</button> <span id="invitation-copy-status" role="status"></span><br>
+    <small>Share this privately with the partner. It expires after seven days and becomes invalid after use.</small></p>{% endif %}
+  {% if sync_state.synced_at %}<form method="post" action="{{ url_for('partner_new_invitation', partner_id=partner.id) }}">
+    <button type="submit">Create a new sign-in invitation</button>
+    <small>Use this if the partner needs to set or reset its password. Earlier unused invitations stop working.</small>
+  </form>{% endif %}
+  <p><a href="{{ url_for('partner_portal_inbox') }}">View online requests and shares</a></p>
+</section>
+{% if partner.logo_file %}<img src="{{ url_for('partner_logo', partner_id=partner.id) }}" alt="{{ partner.name }} logo" style="max-width:150px;max-height:150px;object-fit:contain">{% endif %}
+<form method="post" action="{{ url_for('partner_logo_upload', partner_id=partner.id) }}" enctype="multipart/form-data">
+  <label>{{ 'Replace' if partner.logo_file else 'Upload' }} logo (PNG, JPEG or WebP, up to 2 MB) <input type="file" name="logo" accept="image/png,image/jpeg,image/webp" required></label>
+  <button type="submit">Save logo</button>
+</form>
+<hr>
+<h3>Accepted offers</h3>
+{% for offer in offers %}<p><a href="{{ url_for('partner_offer_detail', offer_id=offer.id) }}">{{ offer.name }}</a> · {{ offer.status }}</p>
+{% else %}<p>No offer linked yet.</p>{% endfor %}
+{% if available_offers %}
+<form method="post" action="{{ url_for('partner_link', partner_id=partner.id) }}">
+  <input type="hidden" name="kind" value="offer">
+  <label>Link an accepted saved offer
+    <select name="id">{% for offer in available_offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}</select>
+  </label><button type="submit">Link offer</button>
+</form>
+{% endif %}
+<p><a href="{{ url_for('partner_pool_pricing') }}">Build another offer</a> · <a href="{{ url_for('saved_partner_offers') }}">Open saved offers</a></p>
+<hr>
+<h3>Verified dedicated pools</h3>
+{% for pool in pools %}<p><a href="{{ url_for('pool_detail', pool_id=pool.pool_id) }}">{{ pool.name or pool.pool_id }}</a> · {{ 'Tree' if pool.allocation_basis == 'trees' else 'CO₂' }} pool · {{ pool.status or '—' }}</p>
+{% else %}<p>No real pool linked. The preview will show no planting or balance claims.</p>{% endfor %}
+<p><a href="{{ url_for('create_pool_page', partner_id=partner.id) }}">Create a planting pool for {{ partner.name }}</a>. Check the owner on the final approval page. After planting succeeds, the pool appears here automatically.</p>
+<p>For an older dedicated pool without an owner, open its pool detail page and record its owner there before the first share.</p>
+{% if partner.internal_notes %}<hr><h3>Internal notes</h3><p>{{ partner.internal_notes }}</p>{% endif %}
+<script>
+(() => {
+  const button = document.getElementById('copy-partner-invitation');
+  const link = document.getElementById('partner-invitation-link');
+  const status = document.getElementById('invitation-copy-status');
+  if (!button || !link) return;
+  let timer;
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(link.href);
+      status.textContent = 'Copied ✓';
+    } catch {
+      const range = document.createRange(); range.selectNodeContents(link);
+      const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+      status.textContent = 'Link selected — press Ctrl+C to copy.';
+    }
+    clearTimeout(timer); timer = setTimeout(() => { status.textContent = ''; }, 2500);
+  });
+})();
+</script>
+{% endblock %}

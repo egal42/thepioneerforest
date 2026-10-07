@@ -13,7 +13,7 @@ export default async function handler(request) {
       || (recordId && !/^[a-zA-Z0-9_-]{1,100}$/.test(recordId))) return json({ error: 'Not found' }, 404);
   try {
     const db = getDatabase();
-    const profiles = await db.sql`SELECT id, name, page_title, tagline, introduction, colors, logo_url
+    const profiles = await db.sql`SELECT id, COALESCE(login_id,id) AS login_id, name, page_title, tagline, introduction, colors, logo_url
       FROM partner_profiles WHERE id = ${partnerId} AND status = 'active'`;
     if (!profiles.length) return json({ error: 'Not found' }, 404);
     if (parts[3] === 'branding') return json({ profile: profiles[0] });

@@ -25,7 +25,7 @@ function showEntryBrand() {
   $('header-logo').hidden = false;
   $('entry-back').href = profile ? `/p/${profile.id}/` : '/';
   $('entry-back').textContent = profile ? `← Back to ${profile.name}’s page` : '← Back to The Pioneer Forest';
-  if (profile && !$('partner-id').value) $('partner-id').value = profile.id;
+  if (profile && !$('partner-id').value) $('partner-id').value = profile.login_id || profile.id;
 }
 async function prepareEntryBrand() {
   if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entryPartner || '')) {
@@ -217,7 +217,7 @@ $('claim-form').addEventListener('submit', async event => {
     const data = await api('claim', { token, password: $('new-password').value });
     history.replaceState(null, '', `/partner/?partner=${encodeURIComponent(data.partnerId)}`);
     entryPartner = data.partnerId; entryProfile = null; await prepareEntryBrand();
-    $('partner-id').value = data.partnerId;
+    $('partner-id').value = entryProfile?.login_id || data.partnerId;
     $('new-password').value = '';
     message('Access activated. Sign in with your new password.');
     await refresh();

@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>{{ 'Create partner' if is_new else 'Edit partner' }}</h2>
+{% if error %}<p role="alert" style="color:#9a241b">{{ error }}</p>{% endif %}
+<form method="post" enctype="multipart/form-data" style="max-width:720px" id="partner-form">
+  <h3>Partner material (optional)</h3>
+  <p><label>Partner information (.txt, up to 100 KB)<br><input type="file" id="partner-info" accept=".txt,text/plain"></label><br>
+  <small>Choose a text file to read it here. Copy any wording you want into the fields below. This file stays in your browser and is not saved.</small></p>
+  <details id="partner-info-preview" hidden><summary>Text from your file</summary>
+    <textarea id="partner-info-text" readonly rows="12" style="width:100%;box-sizing:border-box" aria-label="Text from partner information file"></textarea>
+    <p><button type="button" id="copy-partner-info">Copy all text</button> <span id="copy-status" role="status"></span></p>
+  </details>
+  <p id="file-status" role="status" aria-live="polite"></p>
+  <p><label>Partner logo (PNG, JPEG or WebP, up to 2 MB)<br><input type="file" name="logo" id="partner-logo" accept="image/png,image/jpeg,image/webp"></label><br>
+  <small>The logo is saved with the partner. To try its colours again later, choose the logo file again.</small></p>
+  {% if not is_new and partner.logo_file %}<p>Current logo: <img src="{{ url_for('partner_logo', partner_id=partner.id) }}" alt="{{ partner.name }} logo" style="max-width:90px;max-height:90px;vertical-align:middle"></p>{% endif %}
+  <button type="button" id="suggest-colors">Suggest colours from selected logo</button>
+  <p id="suggest-status" role="status" aria-live="polite"></p>
+  <p><label>Partner name<br><input name="name" required maxlength="120" value="{{ partner.name or '' }}" style="width:100%"></label></p>
+  {% if is_new %}
+  <p><label>Partner ID — used for sign-in and the page URL<br><input name="partner_id" required maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" value="{{ partner.partner_id or '' }}" placeholder="e.g. gpm" style="width:100%"></label><br><small>Choose a unique short ID. It stays fixed after creation.</small></p>
+  {% else %}
+  <p><label>Partner ID for sign-in<br><input name="login_id" required maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" value="{{ partner.login_id or ('gpm' if partner.id == 'global-pi-market' else partner.id) }}" style="width:100%"></label><br><small>Publish / sync after saving to update sign-in. The existing page address and records stay connected. The original ID {{ partner.id }} also continues to work.</small></p>
+  {% endif %}
+  <p><label>Page title — the name of this partner's TPF section<br><input name="section_title" required maxlength="120" value="{{ partner.section_title or '' }}" placeholder="e.g. OMC Forest Journey" style="width:100%"></label></p>
+  <p><label>Short line under the title<br><input name="tagline" maxlength="240" value="{{ partner.tagline or '' }}" style="width:100%"></label></p>
+  <p><label>Page introduction — shown to visitors<br><textarea name="intro" maxlength="1500" rows="4" style="width:100%">{{ partner.intro or '' }}</textarea></label></p>
+  <h3>Public page colours</h3>
+  <p>These five colours style the partner page. You can type a six-digit hex code or use the picker. The logo can suggest a background and main highlight. Review all five colours for readability. Suggestions change the colour fields only when you press the button; nothing is final until you save.</p>
+  {% for key, label, help in [
+    ('background','Page background','The large area behind all content.'),
+    ('panel','Pool cards','Boxes containing pools and records.'),
+    ('accent','Main highlight','Title accent, links and dividing line.'),
+    ('text','Main text','Text on the dark background and cards.'),
+    ('secondary','Secondary detail','Pool card borders and footer line. Defaults to TPF green; change it to the partner colour if preferred.')
+  ] %}
+  {% set value = (partner.colors or colors).get(key, colors[key]) %}
+  <p><label>{{ label }} <input type="color" id="picker-{{ key }}" value="{{ value }}" aria-label="Pick {{ label }}"></label>
+  <input name="color_{{ key }}" id="hex-{{ key }}" value="{{ value }}" size="8" maxlength="7" pattern="#[0-9a-fA-F]{6}" aria-label="{{ label }} hex code"><br><small>{{ help }}</small></p>
+  {% endfor %}
+  <p><label>Internal notes (never shown on partner pages)<br><textarea name="internal_notes" maxlength="2000" rows="3" style="width:100%">{{ partner.internal_notes or '' }}</textarea></label></p>
+  <button type="submit">{{ 'Create partner' if is_new else 'Save changes' }}</button>
+  <a href="{{ url_for('partners_home') }}">Cancel</a>
+</form>
+<script>
+(() => {
+  const form = document.getElementById('partner-form');
+  const status = document.getElementById('suggest-status');
+  const keys = ['background','panel','accent','text','secondary'];
+  const color = (key, value) => {
+    if (!/^#[0-9a-f]{6}$/i.test(value || '')) return;
+    form.elements['color_' + key].value = value.toUpperCase();
+    document.getElementById('picker-' + key).value = value;
+  };
+  keys.forEach(key => {
+    const picker = document.getElementById('picker-' + key);
+    const hex = document.getElementById('hex-' + key);
+    picker.addEventListener('input', () => { hex.value = picker.value.toUpperCase(); });
+    hex.addEventListener('input', () => { if (/^#[0-9a-f]{6}$/i.test(hex.value)) picker.value = hex.value; });
+  });
+  const info = document.getElementById('partner-info');
+  info.addEventListener('change', async () => {
+    const file = info.files[0], preview = document.getElementById('partner-info-preview');
+    const status = document.getElementById('file-status');
+    preview.hidden = true;
+    document.getElementById('partner-info-text').value = '';
+    document.getElementById('copy-status').textContent = '';
+    if (!file) { status.textContent = ''; return; }
+    if (file.size > 100000 || !(file.name.toLowerCase().endsWith('.txt'))) {
+      status.textContent = 'Choose a .txt file no larger than 100 KB.'; return;
+    }
+    try {
+      document.getElementById('partner-info-text').value = await file.text();
+      preview.hidden = false; preview.open = true;
+      status.textContent = 'Text loaded. Copy what you need into the fields below; nothing was filled automatically.';
+    } catch (err) { status.textContent = 'Could not read this file.'; }
+  });
+  document.getElementById('copy-partner-info').addEventListener('click', async () => {
+    const input = document.getElementById('partner-info-text');
+    try { await navigator.clipboard.writeText(input.value); document.getElementById('copy-status').textContent = 'Copied.'; }
+    catch (err) { input.focus(); input.select(); document.getElementById('copy-status').textContent = 'Text selected. Press Ctrl+C to copy.'; }
+  });
+  async function fromLogo(file) {
+    if (!file || file.size > 2_000_000 || !/^image\/(png|jpeg|webp)$/.test(file.type)) return false;
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 96;
+    const ctx = canvas.getContext('2d'); ctx.drawImage(bitmap, 0, 0, 96, 96); bitmap.close();
+    const pixels = ctx.getImageData(0, 0, 96, 96).data;
+    const buckets = new Map(), dark = new Map();
+    for (let i = 0; i < pixels.length; i += 16) {
+      const [r,g,b,a] = pixels.slice(i,i+4);
+      if (a < 200) continue;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b), spread = max-min;
+      const q = [r,g,b].map(v => Math.min(255, Math.round(v/24)*24));
+      const key = q.map(v => v.toString(16).padStart(2,'0')).join('');
+      const brightness = (r*299+g*587+b*114)/1000;
+      if (brightness < 105 && spread > 12) dark.set(key,(dark.get(key)||0)+1);
+      if (max < 45 || min > 225 || spread < 38) continue;
+      buckets.set(key, (buckets.get(key)||0) + 1 + spread/120);
+    }
+    const best = [...buckets].sort((a,b) => b[1]-a[1])[0];
+    const background = [...dark].sort((a,b) => b[1]-a[1])[0];
+    let used = false;
+    if (background) {
+      color('background', '#' + background[0]);
+      {
+        const rgb = background[0].match(/../g).map(x => Math.min(255, parseInt(x,16)+25));
+        color('panel', '#' + rgb.map(x => x.toString(16).padStart(2,'0')).join(''));
+      }
+      color('text','#F5FBF4');
+      used = true;
+    }
+    if (best) { color('accent', '#' + best[0]); used = true; }
+    return used;
+  }
+  document.getElementById('suggest-colors').addEventListener('click', async () => {
+    const file = document.getElementById('partner-logo').files[0];
+    if (!file) { status.textContent = 'Choose a logo file first. The saved logo is not selected automatically.'; return; }
+    if (file.size > 2000000 || !/^image\/(png|jpeg|webp)$/.test(file.type)) {
+      status.textContent = 'Choose a PNG, JPEG or WebP logo no larger than 2 MB.'; return;
+    }
+    status.textContent = 'Reading logo colours…';
+    try {
+      const used = await fromLogo(file);
+      status.textContent = used ? 'Logo colours suggested. Check the text and background contrast before saving.' : 'No usable logo colours found. Your settings were kept.';
+    } catch (err) { status.textContent = 'Could not read logo colours. Your settings were kept.'; }
+  });
+})();
+</script>
+{% endblock %}

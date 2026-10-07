@@ -70,15 +70,16 @@ export default async function handler(request) {
         return json({ error: 'Invalid sign in' }, 401);
       }
       const accounts = await db.sql`
-        SELECT password_hash FROM partner_accounts WHERE partner_id = ${body.partnerId}
-        AND disabled_at IS NULL`;
+        SELECT a.password_hash, a.partner_id FROM partner_accounts a
+        JOIN partner_login_ids l ON l.partner_id=a.partner_id
+        WHERE l.login_id = ${body.partnerId} AND a.disabled_at IS NULL`;
       if (!accounts.length || !await verifyPassword(body.password, accounts[0].password_hash)) {
         return json({ error: 'Invalid sign in' }, 401);
       }
       const token = createSessionToken();
       await db.sql`INSERT INTO partner_sessions (token_hash, partner_id, expires_at)
-        VALUES (${tokenHash(token)}, ${body.partnerId}, now() + interval '7 days')`;
-      return json({ partnerId: body.partnerId }, 200, { 'set-cookie': sessionCookie(token) });
+        VALUES (${tokenHash(token)}, ${accounts[0].partner_id}, now() + interval '7 days')`;
+      return json({ partnerId: accounts[0].partner_id }, 200, { 'set-cookie': sessionCookie(token) });
     }
 
     const partnerId = await currentPartner(request, db);

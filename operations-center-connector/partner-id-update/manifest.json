@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "ui/app.py",
+      "old_sha256": "99a9891451d0bce5b746760426bf08e1c77a1498b316df5503686b34747dc5be",
+      "new_sha256": "b48cd8b132803ece46c862947012b30376a7043466d438f3bc6296c1e2e8ab13"
+    },
+    {
+      "path": "ui/templates/partner_form.html",
+      "old_sha256": "d00d6c8d4ee7d4b49118f39147add1e8a6f422f7bc77a44c5f43f3ac078cf15d",
+      "new_sha256": "3de063d0ebdb590cdba5dd074fef9ed348c2bfc0556adc2c00545a1311a1ade1"
+    },
+    {
+      "path": "ui/templates/partner_detail.html",
+      "old_sha256": "a95a79915e5910359db7cdf0a15b7cd8e0d7c301295ff14dd5d67202050cd92b",
+      "new_sha256": "15710b1a6a87ed4dee36dbc8cfcaea05dcf269ecfb9ee83c955d889a02fc5ac2"
+    },
+    {
+      "path": "ui/portal_sync.py",
+      "old_sha256": "f675f1a8f12289a557caa928553ddb46fd4db19364123f4c2907a39f2495fe65",
+      "new_sha256": "f2d600094c99652070266f506fab728ac22d5412588d98988afd7f13490eae85"
+    }
+  ]
+}

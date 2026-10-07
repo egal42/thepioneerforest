@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,readdirSync} from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
 import {signSync} from './sync.mjs';
+import {hashPassword} from './auth.mjs';
 
 // Run the actual HTTP handlers with only Netlify's database/blob adapters substituted.
 // This is an isolated local database test, never a deployed acceptance test.
@@ -14,7 +15,15 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
  const savedSecret=process.env.TPF_OPS_SYNC_SECRET;process.env.TPF_OPS_SYNC_SECRET='isolated-local-test-secret-not-a-live-credential';
  try{
   const folder=new URL('../netlify/database/migrations/',import.meta.url);
-  for(const migration of readdirSync(folder).sort()) await pg.exec(readFileSync(new URL(`${migration}/migration.sql`,folder),'utf8'));
+  const existingPassword=await hashPassword('existing-account-test-password');
+  for(const migration of readdirSync(folder).sort()) {
+    if(migration==='202610070008_partner_login_ids') {
+      await query(`INSERT INTO partner_profiles(id,name,page_title,colors,local_revision) VALUES ('global-pi-market','Global Pi Market','GPM Mission','{}','existing')`);
+      await query(`INSERT INTO partner_accounts(partner_id,password_hash) VALUES ('global-pi-market',$1)`,[existingPassword]);
+    }
+    await pg.exec(readFileSync(new URL(`${migration}/migration.sql`,folder),'utf8'));
+  }
+  assert.equal((await query(`SELECT password_hash FROM partner_accounts WHERE partner_id='global-pi-market'`)).rows[0].password_hash,existingPassword);
   async function handler(file){
    const url=new URL(`../netlify/functions/${file}.mjs`,import.meta.url);
    let source=readFileSync(url,'utf8').replace("import { getDatabase } from '@netlify/database';","const getDatabase=()=>globalThis[Symbol.for('tpf.isolated.workflow.db')];").replace("import { getStore } from '@netlify/blobs';","const getStore=()=>({set:async()=>{},get:async()=>null});");
@@ -30,10 +39,15 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
    const response=await fn(new Request(origin+path,{method,headers,...(method==='POST'?{body:raw}:{})}));
    return{status:response.status,body:await response.json(),cookie:response.headers.get('set-cookie')?.split(';')[0]};
   }
+  for(const partnerId of ['gpm','global-pi-market']) {
+    const existing=await call(partner,'/api/partner/login',{partnerId,password:'existing-account-test-password'});
+    assert.equal(existing.status,200);assert.equal(existing.body.partnerId,'global-pi-market');
+    assert.equal((await call(partner,'/api/partner/me',undefined,existing.cookie)).body.profile.id,'global-pi-market');
+  }
   const colors={background:'#041524',panel:'#17435F',accent:'#43DCFF',text:'#EEF9FF',secondary:'#28543D'};
   const payload=id=>({profile:{schema:'tpf_partner_v1',id,name:'Isolated test partner',section_title:'Test Journey',status:'active',colors},revision:'a'.repeat(64),setup:{schema:'tpf_partner_public_setup_v1',partner_id:id,name:'Isolated test partner',page_title:'Test Journey',live_records:'ONLINE_LEDGER_ONLY',colors,pools:[{id:`${id}-co2`,name:'Isolated CO₂ test pool',basis:'co2',planted_trees:2,planted_co2_kg:200,proof_urls:['https://tree-nation.com/trees/view/123']},{id:`${id}-trees`,name:'Isolated tree test pool',basis:'trees',planted_trees:2,planted_co2_kg:200,proof_urls:['https://tree-nation.com/trees/view/123']}]}});
   // A branded public page and private request flow work before any planting.
-  const preplant=payload('preplant'); preplant.setup=null;
+  const preplant=payload('preplant'); preplant.setup=null; preplant.profile.login_id='short';
   const prepublished=await call(ops,'/api/ops/publish',preplant,'',true);
   assert.equal(prepublished.status,200);assert.equal(prepublished.body.publishedPools,0);
   assert.equal(new URL(prepublished.body.invitationUrl).searchParams.get('partner'),'preplant');
@@ -46,6 +60,19 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
   assert.equal((await call(partner,'/api/partner/claim',{token:pretoken,password:'only-for-isolated-tests-123'})).status,200);
   const prelogin=await call(partner,'/api/partner/login',{partnerId:'preplant',password:'only-for-isolated-tests-123'});
   assert.equal(prelogin.status,200);
+  const aliasLogin=await call(partner,'/api/partner/login',{partnerId:'short',password:'only-for-isolated-tests-123'});
+  assert.equal(aliasLogin.status,200);assert.equal(aliasLogin.body.partnerId,'preplant');
+  assert.equal((await call(partner,'/api/partner/me',undefined,aliasLogin.cookie)).body.profile.id,'preplant');
+  assert.equal((await call(partner,'/api/partner/login',{partnerId:'short',password:'wrong'})).status,401);
+  const duplicateAlias=payload('different');duplicateAlias.profile.login_id='short';
+  assert.equal((await call(ops,'/api/ops/publish',duplicateAlias,'',true)).status,409);
+  assert.equal((await call(publicPage,'/api/public/different')).status,404);
+  assert.equal((await call(ops,'/api/ops/publish',payload('short'),'',true)).status,409);
+  assert.equal((await call(publicPage,'/api/public/short')).status,404);
+  const legacyUpdate=payload('preplant');legacyUpdate.setup=null;
+  assert.equal((await call(ops,'/api/ops/publish',legacyUpdate,'',true)).status,200);
+  assert.equal((await call(publicPage,'/api/public/preplant/branding')).body.profile.login_id,'short');
+
   assert.deepEqual((await call(partner,'/api/partner/me',undefined,prelogin.cookie)).body.pools,[]);
   assert.equal((await call(partner,'/api/partner/me?partner=test-a',undefined,prelogin.cookie)).body.profile.id,'preplant');
   assert.equal((await call(partner,'/api/partner/request',{pi:20,basis:'co2',message:'First pool request before planting'},prelogin.cookie)).status,201);

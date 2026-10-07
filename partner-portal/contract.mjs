@@ -47,13 +47,16 @@ export function validateDraftProfile(data) {
       || !COLOR_KEYS.every(key => HEX.test(data.colors?.[key] || ''))) {
     throw new Error('Invalid partner profile');
   }
+  if (data.login_id != null && (!ID.test(data.login_id) || data.login_id.length > 80)) {
+    throw new Error('Invalid login ID');
+  }
   const name = String(data.name || '').trim();
   const pageTitle = String(data.section_title || '').trim();
   if (!name || name.length > 120 || !pageTitle || pageTitle.length > 120) {
     throw new Error('Invalid partner title');
   }
   return {
-    partnerId: data.id, name, pageTitle,
+    partnerId: data.id, loginId: data.login_id || null, name, pageTitle,
     tagline: String(data.tagline || '').slice(0, 500),
     introduction: String(data.intro || '').slice(0, 5000),
     colors: Object.fromEntries(COLOR_KEYS.map(key => [key, data.colors[key]])),

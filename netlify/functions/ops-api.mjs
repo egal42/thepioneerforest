@@ -140,14 +140,24 @@ export default async function handler(request) {
     try {
       await client.query('BEGIN');
       await client.query(`INSERT INTO partner_profiles
-        (id, name, page_title, tagline, introduction, colors, logo_url, status, local_revision)
-        VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9)
+        (id, name, page_title, tagline, introduction, colors, logo_url, status, local_revision, login_id)
+        VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10)
         ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, page_title=EXCLUDED.page_title,
         tagline=EXCLUDED.tagline, introduction=EXCLUDED.introduction, colors=EXCLUDED.colors,
         logo_url=EXCLUDED.logo_url, status=EXCLUDED.status,
+        login_id=COALESCE(EXCLUDED.login_id,partner_profiles.login_id),
         local_revision=EXCLUDED.local_revision, updated_at=now()`,
       [profile.partnerId, profile.name, profile.pageTitle, profile.tagline,
-        profile.introduction, JSON.stringify(profile.colors), logoUrl, profile.status, revision]);
+        profile.introduction, JSON.stringify(profile.colors), logoUrl, profile.status, revision, profile.loginId]);
+      for (const loginId of new Set([profile.partnerId, profile.loginId].filter(Boolean))) {
+        const registered = await client.query(`INSERT INTO partner_login_ids (login_id,partner_id)
+          VALUES ($1,$2) ON CONFLICT (login_id) DO UPDATE SET partner_id=partner_login_ids.partner_id
+          RETURNING partner_id`, [loginId, profile.partnerId]);
+        if (registered.rows[0].partner_id !== profile.partnerId) {
+          await client.query('ROLLBACK');
+          return reply({error:'Partner ID is already used by another partner'},409);
+        }
+      }
 
       for (const pool of setup?.pools || []) {
         const total = pool.basis === 'trees' ? pool.plantedTrees : pool.plantedCo2Kg;
