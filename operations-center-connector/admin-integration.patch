@@ -1,0 +1,357 @@
+--- a/ui/app.py
++++ b/ui/app.py
+@@ -1,4 +1,4 @@
+-from flask import Flask, render_template, request, redirect, url_for
++from flask import Flask, render_template, request, redirect, url_for, jsonify
+ import subprocess
+ import requests
+ import json
+@@ -13,6 +13,8 @@
+ from urllib.parse import quote
+ from uuid import uuid4
+ import tempfile
++import threading
++from decimal import Decimal, InvalidOperation
+ from itsdangerous import URLSafeSerializer, BadData
+ from pricing_engine import catalog_choices, budget_choices, number, range_preview, sort_choices
+ 
+@@ -48,7 +50,8 @@
+ 
+ @app.context_processor
+ def inject_environment_banner():
+-    return {"active_environment": active_environment_config()}
++    return {"active_environment": active_environment_config(),
++            "portal_sync_ready": len(os.getenv("TPF_OPS_SYNC_SECRET", "")) >= 32}
+ 
+ UI_DIR = Path(__file__).resolve().parent
+ ROOT_DIR = UI_DIR.parent
+@@ -58,6 +61,7 @@
+ SCRIPTS_DIR = ROOT_DIR / "scripts"
+ CONFIG_FILE = ROOT_DIR / "config.local.json"
+ ENV_FILE = ROOT_DIR / ".env"
++load_dotenv(ENV_FILE)
+ 
+ PENDING_DIR = DATA_ROOT / "donations" / "pending"
+ WORKING_DONATION_FILENAME = "donation_test_001.json"
+@@ -6865,6 +6869,31 @@
+     "background": "#14281D", "panel": "#20382A", "accent": "#57D68D",
+     "text": "#F5FBF4", "secondary": "#275941",
+ }
++_PORTAL_PULL_LOCK = threading.Lock()
++
++
++@app.route("/portal-sync/pull", methods=["POST"])
++def portal_sync_pull():
++    """Catch up while Admin is open; no online event is discarded on network failure."""
++    from portal_sync import pull_events, SyncError
++    secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
++    if len(secret) < 32:
++        return jsonify(error="Portal connection is not configured"), 409
++    if not _PORTAL_PULL_LOCK.acquire(blocking=False):
++        return jsonify(ok=True, already_running=True)
++    try:
++        total = 0
++        for _ in range(10):
++            count, cursor = pull_events(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
++                                        secret, DATA_ROOT / "partner-pools" / "portal-inbox")
++            total += count
++            if count < 100:
++                break
++        return jsonify(ok=True, received=total, cursor=cursor)
++    except SyncError as exc:
++        return jsonify(error=str(exc)), 503
++    finally:
++        _PORTAL_PULL_LOCK.release()
+ 
+ 
+ def _partner_id(value):
+@@ -6924,6 +6953,19 @@
+         if pool and not pool.get("owner_kind") and pool.get("payment_id") and pool.get("certificates"):
+             result[pool_id] = pool
+     return sorted(result.values(), key=lambda pool: (pool.get("created_at", ""), pool["pool_id"]))
++
++
++def _portal_connections_for(partner_id, pools):
++    """Only locally confirmed request-to-pool links enter a publication."""
++    result = []
++    directory = DATA_ROOT / "partner-pools" / "portal-connections"
++    for pool in pools:
++        item = load_json(directory / (pool["pool_id"] + ".json"), None)
++        if item is not None:
++            if item.get("partnerId") != partner_id or item.get("poolId") != pool["pool_id"]:
++                raise ValueError("A saved request connection does not match this pool owner.")
++            result.append({key: item[key] for key in ("requestId", "offerId", "choiceKey", "poolId")})
++    return result
+ 
+ 
+ def _partner_form_record(form, existing=None):
+@@ -7038,9 +7080,220 @@
+     # Ownership is chosen at pool creation. Old unassigned pools are assigned
+     # once on their own detail pages rather than offered in every partner form.
+     available_pools = []
++    sync_file = DATA_ROOT / "partner-pools" / "portal-sync" / (partner_id + ".json")
++    sync_state = load_json(sync_file, {}) or {}
+     return render_template("partner_detail.html", partner=partner, offers=linked_offers,
+                            pools=linked_pools, available_offers=available_offers,
+-                           available_pools=available_pools)
++                           available_pools=available_pools, sync_state=sync_state,
++                           portal_ready=bool(os.getenv("TPF_OPS_SYNC_SECRET")))
++
++
++@app.route("/partners/<partner_id>/portal-sync", methods=["POST"])
++def partner_portal_sync(partner_id):
++    """Explicit local action; never publishes a pool without Admin export proof."""
++    from portal_sync import publish_partner, SyncError
++    from partner_public_export import make_export, ExportNotReady
++    partner = _read_partner(partner_id)
++    if partner is None:
++        return "Partner not found", 404
++    secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
++    if len(secret) < 32:
++        return "Portal connection is not configured.", 409
++    pools = _partner_pools_for(partner)
++    try:
++        connections = _portal_connections_for(partner_id, pools)
++    except ValueError as exc:
++        return "Nothing was published: " + str(exc), 409
++    activate = request.form.get("activate_public") == "yes" or bool(connections)
++    if activate and not pools:
++        return "A verified dedicated pool is required before publishing the public page.", 409
++    to_send = dict(partner)
++    if activate:
++        to_send["status"] = "active"
++    try:
++        result = publish_partner(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
++                                 secret, to_send, pools, PARTNER_ASSETS_DIR, make_export,
++                                 connections=connections)
++    except (SyncError, ExportNotReady, ValueError) as exc:
++        return "Nothing was published: " + str(exc), 409
++    state = {"synced_at": now_iso(), "revision": result.get("revision"),
++             "published_pools": result.get("publishedPools", 0)}
++    if result.get("invitationUrl"):
++        state["invitation_url"] = result["invitationUrl"]
++    if activate and partner.get("status") != "active":
++        partner["status"] = "active"
++        partner["updated_at"] = now_iso()
++        _write_partner(partner)
++    state_file = DATA_ROOT / "partner-pools" / "portal-sync" / (partner_id + ".json")
++    save_json(state_file, state)
++    return redirect(url_for("partner_detail", partner_id=partner_id))
++
++
++@app.route("/partners/<partner_id>/new-invitation", methods=["POST"])
++def partner_new_invitation(partner_id):
++    from portal_sync import new_invitation, SyncError
++    if not _read_partner(partner_id):
++        return "Partner not found", 404
++    secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
++    if len(secret) < 32:
++        return "Portal connection is not configured.", 409
++    try:
++        result = new_invitation(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
++                                secret, partner_id)
++    except SyncError as exc:
++        return "Invitation was not created: " + str(exc), 409
++    state_file = DATA_ROOT / "partner-pools" / "portal-sync" / (partner_id + ".json")
++    state = load_json(state_file, {}) or {}
++    state["invitation_url"] = result["invitationUrl"]
++    state["invitation_created_at"] = now_iso()
++    save_json(state_file, state)
++    return redirect(url_for("partner_detail", partner_id=partner_id))
++
++
++@app.route("/partners/portal-inbox", methods=["GET", "POST"])
++def partner_portal_inbox():
++    from portal_sync import pull_events, SyncError
++    inbox = DATA_ROOT / "partner-pools" / "portal-inbox"
++    error = None
++    if request.method == "POST":
++        secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
++        if len(secret) < 32:
++            error = "Portal connection is not configured."
++        else:
++            try:
++                pull_events(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
++                            secret, inbox)
++            except SyncError as exc:
++                error = str(exc)
++    events = [item["data"] for item in load_json_files(inbox)
++              if isinstance(item.get("data"), dict) and item["data"].get("event_type")]
++    events.sort(key=lambda item: int(item.get("id", 0)), reverse=True)
++    ready_offers = [item["data"] for item in load_json_files(PARTNER_OFFERS_DIR)
++                    if isinstance(item.get("data"), dict)
++                    and item["data"].get("schema") == "tpf_partner_offer_v1"
++                    and item["data"].get("status") == "ready"]
++    connections = [item["data"] for item in load_json_files(
++        DATA_ROOT / "partner-pools" / "portal-connections")
++        if isinstance(item.get("data"), dict)]
++    connected_by_request = {item.get("requestId"): item.get("poolId") for item in connections}
++    used_pools = {item.get("poolId") for item in connections}
++    connectable = {}
++    for event in events:
++        if event.get("event_type") != "offer.selected":
++            continue
++        partner = _read_partner(event.get("partner_id"))
++        if not partner:
++            continue
++        basis = event.get("selected_basis")
++        units_key = "quantity" if basis == "trees" else "total_co2_kg"
++        promised_key = "selected_trees" if basis == "trees" else "selected_co2_kg"
++        try:
++            promised = Decimal(str(event.get(promised_key)))
++            available = [pool for pool in _partner_pools_for(partner)
++                         if pool.get("allocation_basis") == basis
++                         and pool.get("owner_kind") == "partner"
++                         and pool.get("owner_partner_id") == partner["id"]
++                         and pool["pool_id"] not in used_pools
++                         and Decimal(str(pool.get(units_key) or 0)) >= promised]
++        except (InvalidOperation, TypeError):
++            available = []
++        connectable[str(event["id"])] = available
++    return render_template("partner_portal_inbox.html", events=events[:100], error=error,
++                           ready_offers=ready_offers, connectable=connectable,
++                           connected_by_request=connected_by_request,
++                           portal_ready=bool(os.getenv("TPF_OPS_SYNC_SECRET")))
++
++
++@app.route("/partners/<partner_id>/requests/<request_id>/connect-pool", methods=["POST"])
++def partner_portal_connect_pool(partner_id, request_id):
++    """Connect a selected request only after payment and planting proof exist locally."""
++    from portal_sync import publish_partner, SyncError
++    from partner_public_export import make_export, ExportNotReady
++    partner = _read_partner(partner_id)
++    if not partner or not re.fullmatch(r"[a-f0-9-]{36}", request_id):
++        return "Partner request not found", 404
++    if request.form.get("confirm_verified") != "yes":
++        return "Confirm the verified payment and planting before connecting.", 400
++    secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
++    if len(secret) < 32:
++        return "Portal connection is not configured.", 409
++    events = [item["data"] for item in load_json_files(
++        DATA_ROOT / "partner-pools" / "portal-inbox") if isinstance(item.get("data"), dict)]
++    selected = [item for item in events if item.get("event_type") == "offer.selected"
++                and item.get("partner_id") == partner_id
++                and item.get("offer_request_id") == request_id]
++    if len(selected) != 1:
++        return "Fetch the selected offer into the local inbox first.", 409
++    event = selected[0]
++    pool_id = request.form.get("pool_id", "")
++    pools = _partner_pools_for(partner)
++    pool = next((item for item in pools if item["pool_id"] == pool_id), None)
++    basis = event.get("selected_basis")
++    if (not pool or basis not in ("trees", "co2") or pool.get("allocation_basis") != basis
++            or pool.get("owner_kind") != "partner" or pool.get("owner_partner_id") != partner_id):
++        return "Choose a verified pool owned by this partner with the same sharing basis.", 409
++    try:
++        promised = Decimal(str(event.get("selected_trees" if basis == "trees" else "selected_co2_kg")))
++        actual = Decimal(str(pool.get("quantity" if basis == "trees" else "total_co2_kg") or 0))
++        if promised <= 0 or actual < promised:
++            return "The verified pool contains fewer units than the selected offer promised.", 409
++        make_export(partner, [pool], PARTNER_ASSETS_DIR)
++        existing = [item["data"] for item in load_json_files(
++            DATA_ROOT / "partner-pools" / "portal-connections")
++            if isinstance(item.get("data"), dict)]
++        if any(item.get("requestId") == request_id or item.get("poolId") == pool_id for item in existing):
++            return "This request or pool is already connected. Use Publish / sync to retry.", 409
++        link = {"partnerId": partner_id, "requestId": request_id,
++                "offerId": event["entity_id"], "choiceKey": event["selected_key"],
++                "poolId": pool_id}
++        # Persist intent before network access; a timeout can be retried safely.
++        save_json(DATA_ROOT / "partner-pools" / "portal-connections" / (pool_id + ".json"), link)
++        active = dict(partner, status="active")
++        result = publish_partner(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
++                                 secret, active, pools, PARTNER_ASSETS_DIR, make_export,
++                                 connections=_portal_connections_for(partner_id, pools))
++    except (InvalidOperation, TypeError, KeyError, SyncError, ExportNotReady, ValueError) as exc:
++        return "Connection was not published; retry Publish / sync after review: " + str(exc), 409
++    partner["status"] = "active"
++    partner["updated_at"] = now_iso()
++    _write_partner(partner)
++    state_file = DATA_ROOT / "partner-pools" / "portal-sync" / (partner_id + ".json")
++    state = load_json(state_file, {}) or {}
++    state.update({"synced_at": now_iso(), "revision": result.get("revision"),
++                  "published_pools": result.get("publishedPools", 0)})
++    if result.get("invitationUrl"):
++        state["invitation_url"] = result["invitationUrl"]
++    save_json(state_file, state)
++    return redirect(url_for("partner_detail", partner_id=partner_id))
++
++
++@app.route("/partners/<partner_id>/requests/<request_id>/send-offer", methods=["POST"])
++def partner_portal_send_offer(partner_id, request_id):
++    from portal_sync import send_offer, SyncError
++    if not _read_partner(partner_id) or not re.fullmatch(r"[a-f0-9-]{36}", request_id):
++        return "Partner request not found", 404
++    inbox = DATA_ROOT / "partner-pools" / "portal-inbox"
++    received = [entry["data"] for entry in load_json_files(inbox)
++                if isinstance(entry.get("data"), dict)
++                and entry["data"].get("event_type") == "request.created"
++                and entry["data"].get("entity_id") == request_id
++                and entry["data"].get("partner_id") == partner_id]
++    if not received:
++        return "Fetch this partner request into the local inbox first.", 404
++    offer = _read_partner_offer(request.form.get("offer_id", ""))
++    if not offer or offer.get("status") != "ready" or offer.get("search", {}).get("basis") != received[0].get("request_basis"):
++        return "Choose a ready saved offer with the same pool type.", 400
++    secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
++    if len(secret) < 32:
++        return "Portal connection is not configured.", 409
++    try:
++        result = send_offer(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
++                            secret, partner_id, request_id, offer)
++    except SyncError as exc:
++        return "Offer was not sent: " + str(exc), 409
++    save_json(inbox / ("sent-offer-" + request_id + ".json"),
++              {"request_id": request_id, "offer_id": result.get("offerId"), "sent_at": now_iso()})
++    return redirect(url_for("partner_portal_inbox"))
+ 
+ 
+ @app.route("/partners/<partner_id>/edit", methods=["GET", "POST"])
+--- a/ui/templates/layout.html
++++ b/ui/templates/layout.html
+@@ -193,5 +193,13 @@
+     <main>
+         {% block content %}{% endblock %}
+     </main>
++    {% if portal_sync_ready %}<script>
++      // Online records stay online; Admin catches up whenever it is open.
++      async function pullPortalActivity() {
++        try { await fetch('/portal-sync/pull', {method:'POST', cache:'no-store'}); } catch (_) {}
++      }
++      pullPortalActivity();
++      setInterval(pullPortalActivity, 120000);
++    </script>{% endif %}
+ </body>
+ </html>
+--- a/ui/templates/partner_detail.html
++++ b/ui/templates/partner_detail.html
+@@ -6,6 +6,29 @@
+ <p><a href="{{ url_for('partner_edit', partner_id=partner.id) }}">Edit page and branding</a> · <a href="{{ url_for('partner_preview', partner_id=partner.id) }}">Preview page</a></p>
+ <p><a href="{{ url_for('partner_public_export', partner_id=partner.id) }}">Download public setup preview</a><br>
+ <small>Only available after a verified partner pool is planted. This ZIP contains no live shares or balances.</small></p>
++<section style="border:1px solid #ccc;padding:16px;margin:16px 0">
++  <h3>Online Partner Pool connection</h3>
++  {% if portal_ready %}
++    <form method="post" action="{{ url_for('partner_portal_sync', partner_id=partner.id) }}">
++      <button type="submit">Publish / sync {{ partner.name }}</button>
++    </form>
++    <p>Partner details may be sent before planting. Only verified dedicated pools with public proof are published.</p>
++    {% if pools and partner.status != 'active' %}
++      <form method="post" action="{{ url_for('partner_portal_sync', partner_id=partner.id) }}">
++        <input type="hidden" name="activate_public" value="yes">
++        <button type="submit">Publish verified public page</button>
++      </form>
++    {% elif partner.status == 'active' %}<p>Public page is active after the latest successful sync.</p>{% endif %}
++  {% else %}<p>Connection is not configured yet. Nothing has been sent online.</p>{% endif %}
++  {% if sync_state.synced_at %}<p>Last synced: {{ sync_state.synced_at }} · {{ sync_state.published_pools }} verified pools.</p>{% endif %}
++  {% if sync_state.invitation_url %}<p>One-time partner invitation: <a href="{{ sync_state.invitation_url }}">{{ sync_state.invitation_url }}</a><br>
++    <small>Share this privately with the partner. It expires after seven days and becomes invalid after use.</small></p>{% endif %}
++  {% if sync_state.synced_at %}<form method="post" action="{{ url_for('partner_new_invitation', partner_id=partner.id) }}">
++    <button type="submit">Create a new sign-in invitation</button>
++    <small>Use this if the partner needs to set or reset its password. Earlier unused invitations stop working.</small>
++  </form>{% endif %}
++  <p><a href="{{ url_for('partner_portal_inbox') }}">View online requests and shares</a></p>
++</section>
+ {% if partner.logo_file %}<img src="{{ url_for('partner_logo', partner_id=partner.id) }}" alt="{{ partner.name }} logo" style="max-width:150px;max-height:150px;object-fit:contain">{% endif %}
+ <form method="post" action="{{ url_for('partner_logo_upload', partner_id=partner.id) }}" enctype="multipart/form-data">
+   <label>{{ 'Replace' if partner.logo_file else 'Upload' }} logo (PNG, JPEG or WebP, up to 2 MB) <input type="file" name="logo" accept="image/png,image/jpeg,image/webp" required></label>

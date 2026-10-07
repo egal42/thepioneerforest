@@ -1,0 +1,9 @@
+{
+  "files": [
+    {
+      "path": "ui/templates/partner_detail.html",
+      "old_sha256": "2296f4736c654636ab611e03cd1f9ae3e8e86c4e1d5ae48b159d888d6f66a4d2",
+      "new_sha256": "d7b4b295065bf51c79cc585c56db99a94ca2563e9826a9a08ded12f79fa9ad50"
+    }
+  ]
+}

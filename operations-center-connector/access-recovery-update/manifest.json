@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "ui/app.py",
+      "old_sha256": "27774bbe8bb1f9aced67f4da3c097c082554bc341bcc3a565df63fb0424a8c3a",
+      "new_sha256": "aa75f62bfd890974572d4524d5a4579d35c4fe76123f087038ee758e11af919c"
+    },
+    {
+      "path": "ui/templates/partner_portal_inbox.html",
+      "old_sha256": "acc7b392c8e27d3e1c57acd4d276a24a50db8db3de2f6a715fc7fd1c88cc6a7c",
+      "new_sha256": "00f6e904b805b55e30829b149eb1906ab5b587d43ad69e307df0ed0762b5d699"
+    }
+  ]
+}
