@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "ui/static/partner-public/page.js",
+      "old_sha256": "058208390b3a51329426064429cac7645030a58288a44289b06717d5e4b243b8",
+      "accepted_old_sha256": [
+        "058208390b3a51329426064429cac7645030a58288a44289b06717d5e4b243b8"
+      ],
+      "new_sha256": "7bf8d2ec4d3e2277849e050b582aac88ae4f69e0fad22e489f7864640705503a"
+    },
+    {
+      "path": "ui/static/partner-public/card.js",
+      "old_sha256": null,
+      "accepted_old_sha256": [
+        null
+      ],
+      "new_sha256": "90e233cb557e59f3a6f8b7bcda019ff32664d3f4d1cd8509e112491e9f040747"
+    },
+    {
+      "path": "ui/static/partner-public/card-art.mjs",
+      "old_sha256": null,
+      "accepted_old_sha256": [
+        null
+      ],
+      "new_sha256": "5af7b2c115d5549768d0c2fbc42c24c894d4c13bb4a3b8f74e4da7350427079d"
+    },
+    {
+      "path": "ui/static/partner-public/card-colors.mjs",
+      "old_sha256": null,
+      "accepted_old_sha256": [
+        null
+      ],
+      "new_sha256": "197f30ec6dbf568bcfac9ea09b68eeb8fce20e949b6ba9934e0db37c43fd360b"
+    }
+  ]
+}
