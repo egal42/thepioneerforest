@@ -16,6 +16,7 @@ export default async function handler(request) {
     const profiles = await db.sql`SELECT id, name, page_title, tagline, introduction, colors, logo_url
       FROM partner_profiles WHERE id = ${partnerId} AND status = 'active'`;
     if (!profiles.length) return json({ error: 'Not found' }, 404);
+    if (parts[3] === 'branding') return json({ profile: profiles[0] });
     const pools = await db.sql`SELECT p.id, p.name, p.basis, p.total_units, p.planted_trees,
       p.planted_co2_kg, p.project, p.species, p.proof_urls,
       COALESCE(SUM(s.units),0)::text AS shared_units, COUNT(s.id)::text AS share_count
@@ -41,4 +42,4 @@ export default async function handler(request) {
   }
 }
 
-export const config = { path: ['/api/public/:partner', '/api/public/:partner/records/:record'] };
+export const config = { path: ['/api/public/:partner', '/api/public/:partner/branding', '/api/public/:partner/records/:record'] };

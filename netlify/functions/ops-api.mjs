@@ -61,7 +61,7 @@ export default async function handler(request) {
         await client.query(`INSERT INTO partner_invitations (token_hash, partner_id, expires_at)
           VALUES ($1,$2,now() + interval '7 days')`, [tokenHash(token), partnerId]);
         await client.query('COMMIT');
-        return reply({ invitationUrl: `${url.origin}/partner/?invite=${token}` });
+        return reply({ invitationUrl: `${url.origin}/partner/?partner=${encodeURIComponent(partnerId)}&invite=${token}` });
       } catch (error) { await client.query('ROLLBACK'); throw error; }
       finally { client.release(); }
     }
@@ -182,7 +182,7 @@ export default async function handler(request) {
       }
       await client.query('COMMIT');
       return reply({ partnerId: profile.partnerId, revision, publishedPools: setup?.pools.length || 0,
-        invitationUrl: invitation ? `${new URL(request.url).origin}/partner/?invite=${invitation}` : null });
+        invitationUrl: invitation ? `${new URL(request.url).origin}/partner/?partner=${encodeURIComponent(profile.partnerId)}&invite=${invitation}` : null });
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Partner publish rejected', error);

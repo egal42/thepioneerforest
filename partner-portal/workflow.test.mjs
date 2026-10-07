@@ -36,6 +36,9 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
   const preplant=payload('preplant'); preplant.setup=null;
   const prepublished=await call(ops,'/api/ops/publish',preplant,'',true);
   assert.equal(prepublished.status,200);assert.equal(prepublished.body.publishedPools,0);
+  assert.equal(new URL(prepublished.body.invitationUrl).searchParams.get('partner'),'preplant');
+  const branded=await call(publicPage,'/api/public/preplant/branding');
+  assert.equal(branded.status,200);assert.deepEqual(Object.keys(branded.body),['profile']);assert.deepEqual(branded.body.profile.colors,colors);
   const emptyPublic=await call(publicPage,'/api/public/preplant');
   assert.equal(emptyPublic.status,200);assert.deepEqual(emptyPublic.body.pools,[]);assert.deepEqual(emptyPublic.body.records,[]);
   assert.equal((await call(publicPage,'/api/public/preplant/records/missing')).status,404);
@@ -44,6 +47,7 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
   const prelogin=await call(partner,'/api/partner/login',{partnerId:'preplant',password:'only-for-isolated-tests-123'});
   assert.equal(prelogin.status,200);
   assert.deepEqual((await call(partner,'/api/partner/me',undefined,prelogin.cookie)).body.pools,[]);
+  assert.equal((await call(partner,'/api/partner/me?partner=test-a',undefined,prelogin.cookie)).body.profile.id,'preplant');
   assert.equal((await call(partner,'/api/partner/request',{pi:20,basis:'co2',message:'First pool request before planting'},prelogin.cookie)).status,201);
   const unverified=payload('preplant'); unverified.setup.pools[0].proof_urls=[];
   assert.equal((await call(ops,'/api/ops/publish',unverified,'',true)).status,400);

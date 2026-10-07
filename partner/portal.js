@@ -3,6 +3,7 @@ const message = (text, bad = false) => { $('message').textContent = text; $('mes
 async function api(action, body) {
   const response = await fetch('/api/partner/' + action, {
     method: body ? 'POST' : 'GET', credentials: 'same-origin',
+    signal: AbortSignal.timeout(12000),
     headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body ? JSON.stringify(body) : undefined
   });
@@ -13,9 +14,38 @@ async function api(action, body) {
 function item(container, label) {
   const p = document.createElement('p'); p.textContent = label; container.append(p);
 }
+let entryPartner = new URL(location.href).searchParams.get('partner');
+let entryProfile = null;
+function showEntryBrand() {
+  const profile = entryProfile;
+  applyPartnerTheme(profile?.colors || tpfDefaultColors, profile?.id);
+  $('header-name').textContent = profile?.name || 'The Pioneer Forest';
+  $('header-logo').src = profile?.logo_url || '/assets/logo_tpf.png';
+  $('header-logo').alt = profile ? profile.name + ' logo' : 'The Pioneer Forest logo';
+  $('header-logo').hidden = false;
+  $('entry-back').href = profile ? `/p/${profile.id}/` : '/';
+  $('entry-back').textContent = profile ? `← Back to ${profile.name}’s page` : '← Back to The Pioneer Forest';
+  if (profile && !$('partner-id').value) $('partner-id').value = profile.id;
+}
+async function prepareEntryBrand() {
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entryPartner || '')) {
+    try {
+      const response = await fetch(`/api/public/${encodeURIComponent(entryPartner)}/branding`, {signal: AbortSignal.timeout(12000)});
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profile?.id === entryPartner && validPartnerColors(data.profile.colors)) entryProfile = data.profile;
+      }
+    } catch { /* Login remains usable with neutral branding if public branding cannot load. */ }
+  }
+  showEntryBrand();
+}
+const entryBrandReady = prepareEntryBrand();
 async function refresh() {
+  await entryBrandReady;
   if (new URL(location.href).searchParams.has('invite')) {
+    showEntryBrand();
     $('claim').hidden = false; $('signin').hidden = true; $('workspace').hidden = true;
+    partnerThemeReady();
     return;
   }
   $('claim').hidden = true;
@@ -28,6 +58,8 @@ async function refresh() {
     $('footer').textContent = `${data.profile.name} × The Pioneer Forest · Partner Pool`;
     $('public-link').hidden = data.profile.status !== 'active';
     $('public-link').href = `/p/${data.profile.id}/`;
+    $('entry-back').href = `/p/${data.profile.id}/`;
+    $('entry-back').textContent = `← Back to ${data.profile.name}’s page`;
     if (data.profile.logo_url?.startsWith(`/api/public/${data.profile.id}/logo/`)) {
       $('header-logo').src = '/api/partner/logo';
       $('header-logo').alt = `${data.profile.name} logo`;
@@ -173,16 +205,18 @@ async function refresh() {
       $('reward-tools').scrollIntoView({block:'start'});
     }
   } catch (error) {
+    showEntryBrand();
     $('workspace').hidden = true; $('signin').hidden = false; $('workspace-nav').hidden = true; $('footer').hidden = true;
-    if (error.message !== 'Sign in required') message(error.message, true);
-  }
+    if (error.message !== 'Sign in required') message(error.name === 'TimeoutError' ? 'Sign in could not be checked. Please try again.' : error.message, true);
+  } finally { partnerThemeReady(); }
 }
 $('claim-form').addEventListener('submit', async event => {
   event.preventDefault();
   try {
     const token = new URL(location.href).searchParams.get('invite');
     const data = await api('claim', { token, password: $('new-password').value });
-    history.replaceState(null, '', '/partner/');
+    history.replaceState(null, '', `/partner/?partner=${encodeURIComponent(data.partnerId)}`);
+    entryPartner = data.partnerId; entryProfile = null; await prepareEntryBrand();
     $('partner-id').value = data.partnerId;
     $('new-password').value = '';
     message('Access activated. Sign in with your new password.');
