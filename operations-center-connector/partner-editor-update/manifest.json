@@ -1,0 +1,13 @@
+{
+  "files": [
+    {
+      "path": "ui/templates/partner_form.html",
+      "old_sha256": "c3cfb10839f51704c36e0c550950f155264bdc32e6a18f5353e4668a2bace09a",
+      "accepted_old_sha256": [
+        "c3cfb10839f51704c36e0c550950f155264bdc32e6a18f5353e4668a2bace09a",
+        "8abb096ef8d4a94611d86125079d98ebc42f0c100f1a47be8837e60627ca1538"
+      ],
+      "new_sha256": "d00d6c8d4ee7d4b49118f39147add1e8a6f422f7bc77a44c5f43f3ac078cf15d"
+    }
+  ]
+}
