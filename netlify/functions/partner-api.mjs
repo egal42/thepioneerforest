@@ -29,7 +29,7 @@ async function currentPartner(request, db) {
   return rows[0]?.partner_id || null;
 }
 
-export default async function handler(request, context = {}) {
+export default async function handler(request) {
   const url = new URL(request.url);
   const action = url.pathname.split('/').at(-1);
   if (request.method !== 'GET' && request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
@@ -37,29 +37,7 @@ export default async function handler(request, context = {}) {
 
   try {
     const db = getDatabase();
-    if (action === 'recover' && request.method === 'POST') {
-      const body = await bodyOf(request);
-      const field = (key, max, required=false) => {
-        const value = typeof body[key] === 'string' ? body[key].trim() : '';
-        if (value.length > max || (required && !value)) throw new LedgerError('Enter your partner name or ID and a contact detail.');
-        return value;
-      };
-      const identification=field('identification',100,true),contact=field('contact',200,true),note=field('note',500);
-      // Netlify supplies context.ip; retain only a salted digest, never the address.
-      const key=tokenHash((process.env.TPF_OPS_SYNC_SECRET || 'access-request') + ':' + (context.ip || 'unknown'));
-      const client=await db.pool.connect();
-      try {
-        await client.query('BEGIN');
-        const limit=await client.query(`INSERT INTO partner_access_limits(key,count) VALUES($1,1)
-          ON CONFLICT(key) DO UPDATE SET count=CASE WHEN partner_access_limits.window_start < now()-interval '1 hour' THEN 1 ELSE partner_access_limits.count+1 END,
-          window_start=CASE WHEN partner_access_limits.window_start < now()-interval '1 hour' THEN now() ELSE partner_access_limits.window_start END RETURNING count`,[key]);
-        if(limit.rows[0].count<=3) await client.query(`INSERT INTO partner_access_requests(id,identification,contact,note) VALUES($1,$2,$3,$4)`,[randomUUID(),identification,contact,note]);
-        await client.query('COMMIT');
-      } catch(error) { await client.query('ROLLBACK'); throw error; }
-      finally { client.release(); }
-      // Same response for known/unknown partners and repeated submissions. No account changes.
-      return json({message:'Your access request has been received. TPF will review it and contact you through a verified contact channel.'},202);
-    }
+    if (action === 'recover') return json({ error: 'Contact The Pioneer Forest through your usual contact channel.' }, 410);
     if (action === 'claim'  && request.method === 'POST') {
       const body = await bodyOf(request);
       if (!/^[a-f0-9]{64}$/.test(body.token || '')) return json({ error: 'Invalid invitation' }, 400);
