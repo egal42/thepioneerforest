@@ -32,6 +32,22 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
   }
   const colors={background:'#041524',panel:'#17435F',accent:'#43DCFF',text:'#EEF9FF',secondary:'#28543D'};
   const payload=id=>({profile:{schema:'tpf_partner_v1',id,name:'Isolated test partner',section_title:'Test Journey',status:'active',colors},revision:'a'.repeat(64),setup:{schema:'tpf_partner_public_setup_v1',partner_id:id,name:'Isolated test partner',page_title:'Test Journey',live_records:'ONLINE_LEDGER_ONLY',colors,pools:[{id:`${id}-co2`,name:'Isolated CO₂ test pool',basis:'co2',planted_trees:2,planted_co2_kg:200,proof_urls:['https://tree-nation.com/trees/view/123']},{id:`${id}-trees`,name:'Isolated tree test pool',basis:'trees',planted_trees:2,planted_co2_kg:200,proof_urls:['https://tree-nation.com/trees/view/123']}]}});
+  // A branded public page and private request flow work before any planting.
+  const preplant=payload('preplant'); preplant.setup=null;
+  const prepublished=await call(ops,'/api/ops/publish',preplant,'',true);
+  assert.equal(prepublished.status,200);assert.equal(prepublished.body.publishedPools,0);
+  const emptyPublic=await call(publicPage,'/api/public/preplant');
+  assert.equal(emptyPublic.status,200);assert.deepEqual(emptyPublic.body.pools,[]);assert.deepEqual(emptyPublic.body.records,[]);
+  assert.equal((await call(publicPage,'/api/public/preplant/records/missing')).status,404);
+  const pretoken=new URL(prepublished.body.invitationUrl).searchParams.get('invite');
+  assert.equal((await call(partner,'/api/partner/claim',{token:pretoken,password:'only-for-isolated-tests-123'})).status,200);
+  const prelogin=await call(partner,'/api/partner/login',{partnerId:'preplant',password:'only-for-isolated-tests-123'});
+  assert.equal(prelogin.status,200);
+  assert.deepEqual((await call(partner,'/api/partner/me',undefined,prelogin.cookie)).body.pools,[]);
+  assert.equal((await call(partner,'/api/partner/request',{pi:20,basis:'co2',message:'First pool request before planting'},prelogin.cookie)).status,201);
+  const unverified=payload('preplant'); unverified.setup.pools[0].proof_urls=[];
+  assert.equal((await call(ops,'/api/ops/publish',unverified,'',true)).status,400);
+  assert.deepEqual((await call(publicPage,'/api/public/preplant')).body.pools,[]);
   const published=await call(ops,'/api/ops/publish',payload('test-a'),'',true);assert.equal(published.status,200);assert.equal(published.body.publishedPools,2);
   const invite=new URL(published.body.invitationUrl).searchParams.get('invite');
   assert.equal((await call(partner,'/api/partner/claim',{token:invite,password:'only-for-isolated-tests-123'})).status,200);
@@ -97,7 +113,7 @@ test('HTTP workflow: publish, invitation, login, shares, public proof and durabl
   const afterCancel=await call(partner,'/api/partner/me',undefined,cookie);
   assert.equal(afterCancel.body.requests.find(r=>r.id===stale.body.id).status,'cancelled');
   assert.equal(afterCancel.body.shares.length,1);
-  const events=await call(ops,'/api/ops/events?after=0',undefined,'',true);assert.equal(events.status,200);assert.deepEqual(events.body.events.map(x=>x.event_type),['share.created','request.created','offer.selected','request.created','request.created','offer.selected']);
+  const events=await call(ops,'/api/ops/events?after=0',undefined,'',true);assert.equal(events.status,200);assert.deepEqual(events.body.events.map(x=>x.event_type),['request.created','share.created','request.created','offer.selected','request.created','request.created','offer.selected']);
   assert.equal((await call(ops,`/api/ops/events?after=${events.body.next}`,undefined,'',true)).body.events.length,0);
   assert.equal((await call(ops,'/api/ops/events?after=0')).status,401);
   await call(ops,'/api/ops/publish',payload('test-a'),'',true);pub=await call(publicPage,'/api/public/test-a');assert.equal(Number(pub.body.pools.find(p=>p.id==='test-a-co2').shared_units),25);

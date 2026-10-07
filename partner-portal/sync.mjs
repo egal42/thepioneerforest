@@ -21,7 +21,6 @@ export function validatePublish(payload) {
   const profile = validateDraftProfile(payload?.profile);
   const setup = payload.setup == null ? null : validateSetup(payload.setup);
   if (setup && setup.partnerId !== profile.partnerId) throw new Error('Partner IDs differ');
-  if (profile.status === 'active' && !setup) throw new Error('An active page needs verified planting');
   const revision = String(payload.revision || '');
   if (!/^[a-f0-9]{64}$/.test(revision)) throw new Error('Invalid revision');
   const logo = validateLogo(payload.logo);

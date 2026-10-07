@@ -1,0 +1,73 @@
+{
+  "files": [
+    {
+      "path": "ui/app.py",
+      "old_sha256": "67b08a86f2b9a6f06219a760f3528d50b5dc5826f8b69339c29071b51e577f28",
+      "accepted_old_sha256": [
+        "67b08a86f2b9a6f06219a760f3528d50b5dc5826f8b69339c29071b51e577f28",
+        "aa75f62bfd890974572d4524d5a4579d35c4fe76123f087038ee758e11af919c",
+        "9d141de18cbe9c10cc0e5acfc7f24867004c22217a028bac5a3b5d29ca60168f",
+        "27774bbe8bb1f9aced67f4da3c097c082554bc341bcc3a565df63fb0424a8c3a"
+      ],
+      "new_sha256": "99a9891451d0bce5b746760426bf08e1c77a1498b316df5503686b34747dc5be"
+    },
+    {
+      "path": "ui/static/partner-public/omc-layout.css",
+      "old_sha256": null,
+      "accepted_old_sha256": [
+        null
+      ],
+      "new_sha256": "d138f8d389b634a835ef4eec29f23e846b17d2dd1628ed62b5f4409ceee88b6b"
+    },
+    {
+      "path": "ui/static/partner-public/page.js",
+      "old_sha256": null,
+      "accepted_old_sha256": [
+        null
+      ],
+      "new_sha256": "058208390b3a51329426064429cac7645030a58288a44289b06717d5e4b243b8"
+    },
+    {
+      "path": "ui/static/partner-public/sandbox-design.css",
+      "old_sha256": null,
+      "accepted_old_sha256": [
+        null
+      ],
+      "new_sha256": "019f1a2c6826714dc3530307b2386dd26cc9ea1ccd149afb9e3cf84164e3d8a4"
+    },
+    {
+      "path": "ui/static/partner-public/theme.js",
+      "old_sha256": null,
+      "accepted_old_sha256": [
+        null
+      ],
+      "new_sha256": "fd498a27e60984a849491a637440981975f35365c62aafd479694d65969b5047"
+    },
+    {
+      "path": "ui/templates/partner_detail.html",
+      "old_sha256": "ada4eb62cf9d15e4fee97bbf3bc7b3d043e79b149d04107be9c51efde289cb24",
+      "accepted_old_sha256": [
+        "ada4eb62cf9d15e4fee97bbf3bc7b3d043e79b149d04107be9c51efde289cb24",
+        "2296f4736c654636ab611e03cd1f9ae3e8e86c4e1d5ae48b159d888d6f66a4d2",
+        "d7b4b295065bf51c79cc585c56db99a94ca2563e9826a9a08ded12f79fa9ad50"
+      ],
+      "new_sha256": "a95a79915e5910359db7cdf0a15b7cd8e0d7c301295ff14dd5d67202050cd92b"
+    },
+    {
+      "path": "ui/templates/partner_form.html",
+      "old_sha256": "8abb096ef8d4a94611d86125079d98ebc42f0c100f1a47be8837e60627ca1538",
+      "accepted_old_sha256": [
+        "8abb096ef8d4a94611d86125079d98ebc42f0c100f1a47be8837e60627ca1538"
+      ],
+      "new_sha256": "c3cfb10839f51704c36e0c550950f155264bdc32e6a18f5353e4668a2bace09a"
+    },
+    {
+      "path": "ui/templates/partner_preview.html",
+      "old_sha256": "bfd8298b055ba557af4637390cc624693605adebdacc8145978747608e8084e2",
+      "accepted_old_sha256": [
+        "bfd8298b055ba557af4637390cc624693605adebdacc8145978747608e8084e2"
+      ],
+      "new_sha256": "ae0f149d741dd7c2ec1622c2a5917c88354192b3173310cf8a962645fdfcaeb1"
+    }
+  ]
+}

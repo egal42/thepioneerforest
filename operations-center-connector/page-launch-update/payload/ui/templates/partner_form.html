@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>{{ 'Create partner' if is_new else 'Edit partner' }}</h2>
+{% if error %}<p role="alert" style="color:#9a241b">{{ error }}</p>{% endif %}
+<form method="post" enctype="multipart/form-data" style="max-width:720px" id="partner-form">
+  <h3>Partner material (optional)</h3>
+  <p><label>Partner information (.txt, up to 100 KB)<br><input type="file" id="partner-info" accept=".txt,text/plain"></label><br>
+  <small>Choose a text file and use “Suggest fields.” The file stays in this browser; review every suggestion before saving.</small></p>
+  <p><label>Partner logo (PNG, JPEG or WebP, up to 2 MB)<br><input type="file" name="logo" id="partner-logo" accept="image/png,image/jpeg,image/webp"></label><br>
+  <small>The logo is saved with the partner. “Suggest fields” can also suggest page colours from it.</small></p>
+  {% if not is_new and partner.logo_file %}<p>Current logo: <img src="{{ url_for('partner_logo', partner_id=partner.id) }}" alt="{{ partner.name }} logo" style="max-width:90px;max-height:90px;vertical-align:middle"></p>{% endif %}
+  <details id="partner-info-preview" hidden><summary>Text from your file</summary><textarea id="partner-info-text" readonly rows="12" style="width:100%" aria-label="Text from partner information file"></textarea></details>
+  <button type="button" id="suggest-fields">Suggest fields from text and logo</button>
+  <p id="suggest-status" role="status" aria-live="polite"></p>
+  <p><label>Partner name<br><input name="name" required maxlength="120" value="{{ partner.name or '' }}" style="width:100%"></label></p>
+  <p><label>Page title — the name of this partner's TPF section<br><input name="section_title" required maxlength="120" value="{{ partner.section_title or '' }}" placeholder="e.g. OMC Forest Journey" style="width:100%"></label></p>
+  <p><label>Short line under the title<br><input name="tagline" maxlength="240" value="{{ partner.tagline or '' }}" style="width:100%"></label></p>
+  <p><label>Page introduction — shown to visitors<br><textarea name="intro" maxlength="1500" rows="4" style="width:100%">{{ partner.intro or '' }}</textarea></label></p>
+  <h3>Public page colours</h3>
+  <p>These five colours style the partner page. You can type a six-digit hex code or use the picker. Suggestions from text take priority; if no codes are given, the logo may suggest colours. Nothing is final until you save.</p>
+  {% for key, label, help in [
+    ('background','Page background','The large area behind all content.'),
+    ('panel','Pool cards','Boxes containing pools and records.'),
+    ('accent','Main highlight','Title accent, links and dividing line.'),
+    ('text','Main text','Text on the dark background and cards.'),
+    ('secondary','Secondary detail','Pool card borders and footer line. Defaults to TPF green; change it to the partner colour if preferred.')
+  ] %}
+  {% set value = (partner.colors or colors).get(key, colors[key]) %}
+  <p><label>{{ label }} <input type="color" id="picker-{{ key }}" value="{{ value }}" aria-label="Pick {{ label }}"></label>
+  <input name="color_{{ key }}" id="hex-{{ key }}" value="{{ value }}" size="8" maxlength="7" pattern="#[0-9a-fA-F]{6}" aria-label="{{ label }} hex code"><br><small>{{ help }}</small></p>
+  {% endfor %}
+  <p><label>Internal notes (never shown on partner pages)<br><textarea name="internal_notes" maxlength="2000" rows="3" style="width:100%">{{ partner.internal_notes or '' }}</textarea></label></p>
+  <button type="submit">{{ 'Create partner' if is_new else 'Save changes' }}</button>
+  <a href="{{ url_for('partners_home') }}">Cancel</a>
+</form>
+<script>
+(() => {
+  const form = document.getElementById('partner-form');
+  const status = document.getElementById('suggest-status');
+  const keys = ['background','panel','accent','text','secondary'];
+  const color = (key, value) => {
+    if (!/^#[0-9a-f]{6}$/i.test(value || '')) return;
+    form.elements['color_' + key].value = value.toUpperCase();
+    document.getElementById('picker-' + key).value = value;
+  };
+  keys.forEach(key => {
+    const picker = document.getElementById('picker-' + key);
+    const hex = document.getElementById('hex-' + key);
+    picker.addEventListener('input', () => { hex.value = picker.value.toUpperCase(); });
+    hex.addEventListener('input', () => { if (/^#[0-9a-f]{6}$/i.test(hex.value)) picker.value = hex.value; });
+  });
+  const fillEmpty = (key, value) => {
+    if (value && !form.elements[key].value.trim()) form.elements[key].value = value.trim().slice(0, form.elements[key].maxLength > 0 ? form.elements[key].maxLength : 1500);
+  };
+  function fromText(raw) {
+    const text = raw.replace(/\r/g, '');
+    const labeled = (label) => {
+      const line = text.split('\n').find(line => label.test(line));
+      return line ? line.replace(/^.*?:\s*/, '').trim() : '';
+    };
+    fillEmpty('name', labeled(/^\s*(?:partner(?: name)?|organisation|organization)\s*:/i));
+    fillEmpty('section_title', labeled(/^\s*(?:section name|page title|mission name|title)\s*:/i));
+    fillEmpty('tagline', labeled(/^\s*(?:tagline|short line|subtitle)\s*:/i));
+    fillEmpty('intro', labeled(/^\s*(?:introduction|description)\s*:/i));
+    if (!form.elements.section_title.value.trim()) {
+      const match = text.match(/(?:let[’']s go with|section name\s*[:—-]|name to use\s*[:—-]|name would be)\s*\n?\s*([A-Z][^\n.!]{2,100})/);
+      if (match) fillEmpty('section_title', match[1]);
+    }
+    const labels = {
+      background: /(?:deep navy|background)/i,
+      panel: /(?:mid blue|mid navy|cards?|panels?)/i,
+      accent: /(?:cyan|primary accent|main highlight)/i,
+      text: /(?:light text|text colour|text color)/i,
+      secondary: /(?:secondary accent|forest green|green accent)/i
+    };
+    const found = {};
+    for (const line of text.split('\n')) {
+      const match = line.match(/#[0-9a-f]{6}\b/i);
+      if (!match) continue;
+      for (const key of keys) if (labels[key].test(line) && !found[key]) found[key] = match[0];
+    }
+    keys.forEach(key => { if (found[key]) color(key, found[key]); });
+    return found;
+  }
+  async function fromLogo(file, textColors) {
+    if (!file || file.size > 2_000_000 || !/^image\/(png|jpeg|webp)$/.test(file.type)) return false;
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 96;
+    const ctx = canvas.getContext('2d'); ctx.drawImage(bitmap, 0, 0, 96, 96); bitmap.close();
+    const pixels = ctx.getImageData(0, 0, 96, 96).data;
+    const buckets = new Map(), dark = new Map();
+    for (let i = 0; i < pixels.length; i += 16) {
+      const [r,g,b,a] = pixels.slice(i,i+4);
+      if (a < 200) continue;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b), spread = max-min;
+      const q = [r,g,b].map(v => Math.min(255, Math.round(v/24)*24));
+      const key = q.map(v => v.toString(16).padStart(2,'0')).join('');
+      const brightness = (r*299+g*587+b*114)/1000;
+      if (brightness < 105 && spread > 12) dark.set(key,(dark.get(key)||0)+1);
+      if (max < 45 || min > 225 || spread < 38) continue;
+      buckets.set(key, (buckets.get(key)||0) + 1 + spread/120);
+    }
+    const best = [...buckets].sort((a,b) => b[1]-a[1])[0];
+    const background = [...dark].sort((a,b) => b[1]-a[1])[0];
+    let used = false;
+    if (background && !textColors.background) {
+      color('background', '#' + background[0]);
+      if (!textColors.panel) {
+        const rgb = background[0].match(/../g).map(x => Math.min(255, parseInt(x,16)+25));
+        color('panel', '#' + rgb.map(x => x.toString(16).padStart(2,'0')).join(''));
+      }
+      if (!textColors.text) color('text','#F5FBF4');
+      used = true;
+    }
+    if (best && !textColors.accent) { color('accent', '#' + best[0]); used = true; }
+    return used;
+  }
+  document.getElementById('suggest-fields').addEventListener('click', async () => {
+    status.textContent = 'Reading suggestions…';
+    try {
+      const textFile = document.getElementById('partner-info').files[0];
+      if (textFile && textFile.size > 100_000) throw new Error('Text file exceeds 100 KB.');
+      const fileText = textFile ? await textFile.text() : '';
+      document.getElementById('partner-info-text').value = fileText;
+      document.getElementById('partner-info-preview').hidden = !textFile;
+      const found = textFile ? fromText(fileText) : {};
+      const logoUsed = await fromLogo(document.getElementById('partner-logo').files[0], found);
+      status.textContent = textFile || logoUsed ? 'Suggestions filled where found. Check names, wording and colours before saving.' : 'No usable suggestions found. Fill the fields manually or choose a text file/logo.';
+    } catch (err) { status.textContent = 'Could not read the material: ' + err.message; }
+  });
+})();
+</script>
+{% endblock %}

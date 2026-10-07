@@ -21,7 +21,6 @@ export default async function handler(request) {
       COALESCE(SUM(s.units),0)::text AS shared_units, COUNT(s.id)::text AS share_count
       FROM partner_pools p LEFT JOIN partner_shares s ON s.pool_id = p.id
       WHERE p.partner_id = ${partnerId} GROUP BY p.id ORDER BY p.created_at DESC`;
-    if (!pools.length) return json({ error: 'Not published' }, 404);
     if (recordId) {
       const records = await db.sql`SELECT s.id, s.pool_id, s.pioneer_name, s.units,
         s.reason, s.created_at, p.name AS pool_name, p.basis, p.proof_urls
