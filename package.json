@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test partner-portal/*.test.mjs"
+    "test": "node --test partner-portal/*.test.mjs website-data/*.test.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "11.1.3",
