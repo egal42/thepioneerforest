@@ -6993,25 +6993,12 @@ def _partner_form_record(form, existing=None):
         "history": [],
     }
     if not existing:
-        slug = (form.get("partner_id") or "").strip().lower()
-        if not slug:
-            raise ValueError("Choose a Partner ID, such as gpm. Use lowercase letters, numbers and hyphens.")
-        if not _partner_id(slug) or len(slug) > 80:
-            raise ValueError("Use lowercase letters, numbers and single hyphens for the Partner ID.")
+        slug = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
+        if not _partner_id(slug):
+            raise ValueError("Enter a partner name containing letters or numbers.")
         if _read_partner(slug):
             raise ValueError("This partner already exists; open it to edit.")
         record["id"] = slug
-    login_id = (form.get("login_id") or record.get("login_id") or
-                ("gpm" if record["id"] == "global-pi-market" else record["id"])).strip().lower()
-    if not _partner_id(login_id) or len(login_id) > 80:
-        raise ValueError("Use lowercase letters, numbers and single hyphens for the login ID.")
-    for other in _all_partners():
-        other_login = other.get("login_id") or ("gpm" if other["id"] == "global-pi-market" else other["id"])
-        if other["id"] != record["id"] and login_id in (other["id"], other_login):
-            raise ValueError("This Partner ID is already used by another partner.")
-        if other["id"] != record["id"] and record["id"] == other_login:
-            raise ValueError("This Partner ID is already used by another partner.")
-    record["login_id"] = login_id
     record.update(name=name, section_title=section_title,
                   tagline=(form.get("tagline") or "").strip()[:240],
                   intro=(form.get("intro") or "").strip()[:1500],

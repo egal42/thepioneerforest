@@ -1,6 +1,7 @@
 TPF Partner Payment Match Update — 2026-10-08
 
-For the current Partner ID update version of Operations Center.
+For the exact installed Operations Center version supplied as app(9).py.
+This corrected package preserves its existing partner creation behavior.
 Close Operations Center, run INSTALL.bat and choose your existing TPF_ADMIN folder.
 It checks the exact code version, backs up changed code, and replaces three code files.
 No data, credentials, settings or pool records are replaced by installation.

@@ -2,8 +2,8 @@
   "files": [
     {
       "path": "ui/app.py",
-      "old_sha256": "b48cd8b132803ece46c862947012b30376a7043466d438f3bc6296c1e2e8ab13",
-      "new_sha256": "7f561915d6817583e3389aa2e5e9aca58e4b49d1fefa28ccb2ab5649ac45fa58"
+      "old_sha256": "99a9891451d0bce5b746760426bf08e1c77a1498b316df5503686b34747dc5be",
+      "new_sha256": "314809d23336a97a12f2c89963d204c770f97ced7d1688d513a376c91e10d830"
     },
     {
       "path": "ui/templates/partner_portal_inbox.html",
