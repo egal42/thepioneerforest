@@ -1,6 +1,6 @@
 // Tree and Planet artwork carried forward from the approved isolated demo.
-export function cardArtworkSvg(template, primary, accent){
- const p=primary,a=accent,n='#d5dfdb';
+export function cardArtworkSvg(template, primary, accent, neutral = '#d5dfdb'){
+ const p=primary,a=accent,n=neutral;
  const defs=`<defs><filter id="g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
  if(template==='tree'){
   const leaves=[[165,220,-20,p,.9],[245,170,15,a,.8],[335,140,-10,p,.85],[420,175,25,a,.78],[675,170,-20,p,.82],[765,135,12,a,.86],[855,180,-15,p,.8],[945,240,22,a,.9],[110,345,-12,p,.8],[195,395,22,a,.76],[925,380,-20,p,.8],[1010,345,12,a,.78],[100,550,12,a,.75],[185,600,-18,p,.72],[895,575,18,a,.75],[995,535,-12,p,.72],[285,310,-20,p,.68],[805,295,18,a,.68],[250,680,15,a,.62],[845,665,-18,p,.62],[225,275,10,p,.58],[895,285,-10,a,.58],[135,455,-12,p,.55],[955,455,12,a,.55]];

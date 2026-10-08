@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reward card colour samples · TPF</title>
+<style>body{margin:0;background:#102323;color:#f5fbf4;font:16px system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:28px}h1{font-size:28px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:24px}article{min-width:0}canvas{display:block;width:100%;height:auto;border:1px solid #789d9d;border-radius:14px}p{line-height:1.6}button{padding:10px 16px;margin-bottom:22px;font:inherit;cursor:pointer}</style>
+<main><h1>Reward card colour samples</h1><p>These are design samples, not real rewards. They do not create records or change pool balances. GPM and OMC use their current saved colours; the light theme tests a lighter partner background.</p>
+<button id="tree">Show tree cards</button> <button id="planet">Show CO₂ cards</button><p id="status" role="status"></p><div class="grid" id="cards"></div></main>
+<script type="module">
+import {drawShareCard} from '/public-partner/card.js';
+const profiles=[
+{id:'global-pi-market',name:'Global Pi Market',colors:{background:'#183030',accent:'#A8D8FF',secondary:'#275941'},pool:'GPM Green Pioneer Mission — Tree Pool 01'},
+{id:'omc',name:'OMC',colors:{background:'#041524',accent:'#43DCFF',secondary:'#28543D'},pool:'OMC Forest Journey'},
+{id:'light-example',name:'Light theme example',colors:{background:'#F0F5FA',accent:'#28543D',secondary:'#3269A0'},pool:'Sample pool'}
+];
+let busy=false;
+async function render(basis){
+ if(busy)return;busy=true;
+ document.querySelectorAll('button').forEach(b=>b.disabled=true);
+ const host=document.getElementById('cards');host.replaceChildren();
+ document.getElementById('status').textContent='Drawing sample cards…';
+ try{
+ for(const profile of profiles){
+ const article=document.createElement('article'),title=document.createElement('h2'),canvas=document.createElement('canvas');
+ title.textContent=profile.name;canvas.setAttribute('aria-label',profile.name+' sample reward card');article.append(title,canvas);host.append(article);
+ await drawShareCard(canvas,profile,{units:basis==='trees'?1:100,basis,pioneer_name:'Sample Pioneer',pool_name:profile.pool,reason:'Colour preview'},basis==='trees'?'tree':'planet');
+ const ctx=canvas.getContext('2d');ctx.save();ctx.fillStyle='#000';ctx.fillRect(320,20,440,50);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 24px Arial';ctx.fillText('SAMPLE — NOT A REAL REWARD',540,54);ctx.restore();
+ }
+ document.getElementById('status').textContent='';
+ }catch(e){document.getElementById('status').textContent='Could not draw cards: '+e.message;}
+ finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);}
+}
+document.getElementById('tree').onclick=()=>render('trees');
+document.getElementById('planet').onclick=()=>render('co2');
+render('trees');
+</script></html>
