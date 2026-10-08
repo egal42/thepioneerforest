@@ -1,5 +1,5 @@
 import { cardArtworkSvg } from '/partner-portal/card-art.mjs';
-import { cardAccent, cardBackground } from '/partner-portal/card-colors.mjs';
+import { cardAccent, cardBackground, cardText, cardOverlay } from '/partner-portal/card-colors.mjs';
 
 function fitted(ctx, value, maxWidth, start, min) {
   let size = start;
@@ -15,18 +15,19 @@ export async function drawShareCard(canvas, profile, record, template) {
   const ctx = canvas.getContext('2d');
   canvas.width = canvas.height = 1080;
   const bg = cardBackground(profile.colors?.background);
+  const text = cardText(bg);
   const accent = cardAccent(profile.colors?.accent, bg);
   const secondary = cardAccent(profile.colors?.secondary, bg);
   ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1080);
-  const svgUrl = URL.createObjectURL(new Blob([cardArtworkSvg(template, accent, secondary)], { type: 'image/svg+xml' }));
+  const svgUrl = URL.createObjectURL(new Blob([cardArtworkSvg(template, accent, secondary, text)], { type: 'image/svg+xml' }));
   try {
     const image = new Image(); image.src = svgUrl;
     await image.decode(); ctx.drawImage(image, 0, 0, 1080, 1080);
   } finally { URL.revokeObjectURL(svgUrl); }
   const scrim = ctx.createRadialGradient(540, 520, 30, 540, 520, 420);
-  scrim.addColorStop(0, 'rgba(4,21,36,.98)');
-  scrim.addColorStop(.65, 'rgba(4,21,36,.91)');
-  scrim.addColorStop(1, 'rgba(4,21,36,0)');
+  scrim.addColorStop(0, cardOverlay(bg, .98));
+  scrim.addColorStop(.65, cardOverlay(bg, .91));
+  scrim.addColorStop(1, cardOverlay(bg, 0));
   ctx.fillStyle = scrim; ctx.fillRect(100, 180, 880, 740);
   if (profile.logo_url?.startsWith(`/api/public/${profile.id}/logo/`)) {
     try {
@@ -37,14 +38,14 @@ export async function drawShareCard(canvas, profile, record, template) {
     } catch { /* A missing logo must not prevent the record card download. */ }
   }
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#f5fbf4'; ctx.font = '900 25px Arial, sans-serif';
+  ctx.fillStyle = text; ctx.font = '900 25px Arial, sans-serif';
   ctx.fillText('COMMUNITY REWARD', 540, 350);
   const amount = Number(record.units).toLocaleString('en-US',{maximumFractionDigits:3});
   ctx.font = `900 ${fitted(ctx, amount, 650, 120, 62)}px Arial, sans-serif`;
   ctx.shadowColor = accent; ctx.shadowBlur = 22; ctx.fillText(amount, 540, 465); ctx.shadowBlur = 0;
   ctx.fillStyle = accent; ctx.font = '900 48px Arial, sans-serif';
   ctx.fillText(record.basis === 'trees' ? (Number(amount) === 1 ? 'TREE' : 'TREES') : 'KG CO₂', 540, 526);
-  ctx.fillStyle = '#f5fbf4'; ctx.font = '30px Arial, sans-serif'; ctx.fillText('shared with', 540, 586);
+  ctx.fillStyle = text; ctx.font = '30px Arial, sans-serif'; ctx.fillText('shared with', 540, 586);
   const pioneer = String(record.pioneer_name);
   ctx.font = `900 ${fitted(ctx, pioneer, 760, 52, 30)}px Arial, sans-serif`;
   ctx.fillText(pioneer, 540, 646);
