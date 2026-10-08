@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Impact – The Pioneer Forest</title>
+  <meta name="description" content="See recorded tree planting and estimated CO₂ capture, with planting proof and a clear review date.">
+  <link rel="canonical" href="https://thepioneerforest.org/impact">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Impact – The Pioneer Forest">
+  <meta property="og:description" content="See recorded tree planting and estimated CO₂ capture, with planting proof and a clear review date.">
+  <meta property="og:url" content="https://thepioneerforest.org/impact">
+  <meta property="og:image" content="https://thepioneerforest.org/assets/logo_tpf.png">
+  <meta name="twitter:card" content="summary">
+
 
   <!-- Favicon -->
   <link rel="icon" href="assets/favicon/favicon.ico" sizes="any">
@@ -36,20 +45,18 @@
         <div class="kicker">THE PIONEER FOREST</div>
         <h1>Impact</h1>
         <p class="subtitle">
-          Documented outcomes within the Pi Network ecosystem.
+          Recorded planting and estimated CO₂ capture.
         </p>
       </div>
     </header>
 
     <section class="intro" aria-label="Overview">
       <p>
-        This page presents the recorded totals of The Pioneer Forest:
-        contributions converted into documented environmental impact.
+        This page brings together the number of trees planted and their estimated CO₂ capture, supported by planting records.
       </p>
 
       <p>
-        Figures shown here are based on public records, planting documentation,
-        and the project’s maintained impact summary.
+        TPF checks these totals against its records before publishing them. The review date below shows how current the summary is.
       </p>
     </section>
 
@@ -58,20 +65,21 @@
 
       <div class="impact-panel" role="group" aria-label="Totals">
         <div class="impact-item">
-          <div class="impact-label">Total Pi Contributed</div>
-          <div class="impact-value" id="total-pi">Updating…</div>
+          <div class="impact-label">Trees planted</div>
+          <div class="impact-value visible" id="total-trees">Loading…</div>
         </div>
 
         <div class="impact-divider" aria-hidden="true"></div>
 
         <div class="impact-item">
-          <div class="impact-label">Total CO₂ Offset</div>
-          <div class="impact-value" id="total-co2">Updating…</div>
+          <div class="impact-label">Estimated CO₂ capture</div>
+          <div class="impact-value visible" id="total-co2">Loading…</div>
         </div>
       </div>
+      <p class="impact-source" data-tpf-summary-status role="status">Loading the public summary…</p>
 
       <p class="impact-source">
-        Source: documented contributions, planting records, and verified project tracking.
+        Source: the reviewed TPF public summary, supported by TPF planting records and Tree-Nation planting proof.
       </p>
     </section>
 
@@ -103,13 +111,11 @@
       <h2>Interpretation</h2>
 
       <p>
-        These figures reflect recorded outcomes rather than projected potential.
-        They are intended as a public summary of what has already been documented.
+        Tree planting is a recorded activity. The CO₂ figure is an estimate of what those trees will capture over time, not CO₂ already removed from the atmosphere.
       </p>
 
       <p>
-        Project conditions, species, locations, and timing may vary,
-        but the record remains focused on real, traceable impact.
+        Tree-Nation’s current calculations are capped at the first ten years of growth. Actual capture depends on the trees, site conditions and their survival. <a href="https://kb.tree-nation.com/knowledge/our-carbon-calculation-methodology" target="_blank" rel="noopener">Read the Tree-Nation methodology →</a>
       </p>
     </section>
 
@@ -121,7 +127,7 @@
 
       <a href="support.html">
         <span class="link-title">How to Support</span>
-        <span class="link-hint">Donation path →</span>
+        <span class="link-hint">Contribution instructions →</span>
       </a>
 
       <a href="transparency.html">
@@ -131,138 +137,12 @@
     </nav>
 
     <footer class="footer">
-      <p class="footer-line">What is recorded here has already taken root.</p>
-      <p class="footer-tag">Pi-powered reforestation.</p>
+      <p class="footer-line">Planting is recorded. The forest keeps growing.</p>
+      <p class="footer-tag">Pi-powered Reforestation.</p>
     </footer>
   </main>
 
-  <script>
-    const IMPACT_GID = 1443870873; // Impact Summary tab
-    const SPREADSHEET_ID = "17RDbOpsrq-4Uzn9LLvhgQSheYPyoeFWB0PyvRM1Lz4I";
-
-    const IMPACT_URL =
-      `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?gid=${IMPACT_GID}&tqx=out:json`;
-
-    function parseGViz(text) {
-      const start = text.indexOf("{");
-      const end = text.lastIndexOf("}");
-      return JSON.parse(text.substring(start, end + 1));
-    }
-
-    function formatNumberLocale(n, decimals = 0) {
-      return Number(n).toLocaleString(undefined, {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-      });
-    }
-
-    function animateValue({ el, from, to, duration = 750, decimals = 0, suffix = "" }) {
-      if (!el) return;
-
-      el.classList.add("visible");
-
-      const start = performance.now();
-      const diff = to - from;
-
-      function tick(now) {
-        const t = Math.min(1, (now - start) / duration);
-        const current = from + diff * t;
-        el.textContent = formatNumberLocale(current, decimals) + suffix;
-        if (t < 1) requestAnimationFrame(tick);
-      }
-
-      requestAnimationFrame(tick);
-    }
-
-    function showAlarm(message) {
-      console.error("🚨 Impact Alarm:", message);
-
-      const alarm = document.createElement("div");
-      alarm.textContent = "⚠ Impact data unavailable";
-      alarm.style.color = "#ff6b6b";
-      alarm.style.marginTop = "10px";
-      alarm.style.fontSize = "0.9rem";
-
-      const panel = document.querySelector(".impact-panel");
-      if (panel) panel.appendChild(alarm);
-    }
-
-    async function loadImpactTotals() {
-      const piEl = document.getElementById("total-pi");
-      const co2El = document.getElementById("total-co2");
-
-      if (!piEl || !co2El) return;
-
-      piEl.textContent = "Updating…";
-      co2El.textContent = "Updating…";
-
-      try {
-        const res = await fetch(IMPACT_URL, { cache: "no-store" });
-
-        if (!res.ok) {
-          showAlarm("Network error: " + res.status);
-          return;
-        }
-
-        const text = await res.text();
-        const data = parseGViz(text);
-
-        const rows = data?.table?.rows;
-        if (!rows || !Array.isArray(rows)) {
-          showAlarm("Invalid GViz structure");
-          return;
-        }
-
-        let totalPi = null;
-        let totalCO2 = null;
-
-        rows.forEach(row => {
-          const rawLabel = row?.c?.[0]?.v;
-          const rawValue = row?.c?.[1]?.v;
-
-          if (rawLabel == null || rawValue == null) return;
-
-          const label = String(rawLabel).toLowerCase();
-          const value = Number(rawValue);
-
-          if (!Number.isFinite(value)) return;
-
-          if (label.includes("total pi")) totalPi = value;
-          if (label.includes("total co")) totalCO2 = value;
-        });
-
-        if (!Number.isFinite(totalPi) || !Number.isFinite(totalCO2)) {
-          showAlarm("Totals not found in sheet (gid mismatch?)");
-          piEl.textContent = "—";
-          co2El.textContent = "—";
-          return;
-        }
-
-        animateValue({
-          el: piEl,
-          from: totalPi * 0.95,
-          to: totalPi,
-          decimals: 0,
-          suffix: " Pi"
-        });
-
-        animateValue({
-          el: co2El,
-          from: totalCO2 * 0.95,
-          to: totalCO2,
-          decimals: 0,
-          suffix: " kg"
-        });
-
-      } catch (err) {
-        showAlarm("Fetch failed");
-        piEl.textContent = "—";
-        co2El.textContent = "—";
-      }
-    }
-
-    loadImpactTotals();
-  </script>
+  <script type="module" src="website-data/public.js"></script>
 
 </body>
 </html>

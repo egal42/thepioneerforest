@@ -100,7 +100,7 @@ async function refresh() {
       }
       item(details, `Status: ${available > 0 ? 'Available' : 'Fully shared'}`);
       item(details, `Shared as: ${pool.basis === 'trees' ? 'Trees' : 'CO₂'}`);
-      item(details, `${number(pool.planted_trees)} trees · ${amountText(pool.planted_co2_kg,'co2')} planted`);
+      item(details, `${number(pool.planted_trees)} trees planted · ${number(pool.planted_co2_kg)} kg estimated CO₂ capture`);
       item(details, `${pool.project} · ${displayPartnerSpecies(pool)}`);
       const actions = document.createElement('div'); actions.className = 'action-row'; details.append(actions);
       for (const url of pool.proof_urls || []) addLink(actions, 'View planting proof', url).className = 'button-link';
