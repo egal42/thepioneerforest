@@ -6,13 +6,13 @@ function valid(d){
  if(!/^[a-f0-9]{64}$/.test(d.revision||'')||!Number.isFinite(Date.parse(d.publishedAt)))return false;
  if(d.impact===null)return true;
  const p=d.impact;
- return amount(p?.contributionsPi,7,1e12)&&amount(p?.estimatedCo2Kg,3,1e15)&&(p.trees===null||amount(p.trees,0,1e12))&&/^\d{4}-\d{2}-\d{2}$/.test(p.asOf||'')&&new Date(p.asOf+'T00:00:00Z').toISOString().slice(0,10)===p.asOf&&p.asOf<=new Date().toISOString().slice(0,10);
+ return amount(p?.estimatedCo2Kg,3,1e15)&&amount(p?.trees,0,1e12)&&/^\d{4}-\d{2}-\d{2}$/.test(p.asOf||'')&&new Date(p.asOf+'T00:00:00Z').toISOString().slice(0,10)===p.asOf&&p.asOf<=new Date().toISOString().slice(0,10);
 }
 function number(v,maximumFractionDigits=3){return Number(v).toLocaleString(undefined,{maximumFractionDigits});}
 export function renderSummary(d,stale=false){
  for(const el of document.querySelectorAll('[data-tpf-minimum]'))el.textContent=number(d.minimumCo2KgPerPi);
  const impact=d.impact;
- for(const [id,key,suffix,precision] of [['total-pi','contributionsPi',' Pi',7],['total-co2','estimatedCo2Kg',' kg',3],['total-trees','trees','',0]]){
+ for(const [id,key,suffix,precision] of [['total-co2','estimatedCo2Kg',' kg',3],['total-trees','trees','',0]]){
   const el=document.getElementById(id);if(el)el.textContent=impact?.[key]!=null?number(impact[key],precision)+suffix:'Not published yet';
  }
  for(const el of document.querySelectorAll('[data-tpf-summary-status]')){

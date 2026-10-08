@@ -3,7 +3,7 @@
     {
       "path": "ui/website_publication.py",
       "old_sha256": null,
-      "new_sha256": "1f5c2c59a91d8a4164fb604a586a4fa17236e19a0b0aef65bbb8208d239904c4"
+      "new_sha256": "9ec2fcf8c4a5d526b34e856ef7460c0ccde12f14f333eab52d531d0dff9785a9"
     },
     {
       "path": "ui/app.py",
@@ -18,7 +18,7 @@
     {
       "path": "ui/templates/website_data.html",
       "old_sha256": null,
-      "new_sha256": "96aa3d33abed2f02f3ae5aa90f4afeb4bd11f0ee33d00d1733a39bb5111a4c2f"
+      "new_sha256": "dfe4c47376325ab8465380234ea1f4520eb14a57572129e64f6cbebb2a039e2f"
     }
   ]
 }

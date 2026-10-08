@@ -11,12 +11,11 @@
 <p>Before publishing, reconcile the complete totals, including historical records. Count each planting once. Pool backing and the rewards shared from that pool are not two separate plantings. These values are not calculated by adding every file in the data folder.</p>
 <form method="post">
   <fieldset><legend>Reviewed totals</legend>
-  <p><label>Total Pi contributed<br><input name="contributions_pi" inputmode="decimal" value="{{ data.draft.contributions_pi or '' }}" placeholder="e.g. 1870.5"></label></p>
   <p><label>Estimated CO₂ capture (kg)<br><input name="estimated_co2_kg" inputmode="decimal" value="{{ data.draft.estimated_co2_kg or '' }}"></label></p>
-  <p><label>Total planted trees (optional)<br><input name="trees" inputmode="numeric" value="{{ data.draft.trees or '' }}"></label></p>
+  <p><label>Total planted trees<br><input name="trees" inputmode="numeric" value="{{ data.draft.trees or '' }}"></label></p>
   <p><label>Records checked through<br><input name="as_of" type="date" value="{{ data.draft.as_of or '' }}"></label></p>
   <p><label>Reconciliation note (kept locally)<br><textarea name="review_note" rows="3" maxlength="2000">{{ data.draft.review_note or '' }}</textarea></label></p>
-  <p>Use complete totals, not just the latest contribution. For the first publication, reconcile the old public summary with the current TPF records. A planting certificate supports a CO₂ estimate; it does not mean all that capture is already complete.</p>
+  <p>Use complete planting totals, not just the latest planting. For the first publication, reconcile the old public summary with the current TPF records. A planting certificate supports a CO₂ estimate; it does not mean all that capture is already complete.</p>
   </fieldset>
   <p><button name="action" value="review">Save and review draft</button></p>
 </form>
@@ -25,7 +24,7 @@
 <h3>Ready for your review</h3>
 <p>Minimum: <strong>{{ data.review.minimumCo2KgPerPi }} kg/Pi</strong></p>
 {% if data.review.impact %}
-<p>Contributions: <strong>{{ data.review.impact.contributionsPi }} Pi</strong> · Estimated CO₂ capture: <strong>{{ data.review.impact.estimatedCo2Kg }} kg</strong> · Trees: {{ data.review.impact.trees or 'not included' }} · Records checked through: {{ data.review.impact.asOf }}</p>
+<p>Estimated CO₂ capture: <strong>{{ data.review.impact.estimatedCo2Kg }} kg</strong> · Trees: {{ data.review.impact.trees }} · Records checked through: {{ data.review.impact.asOf }}</p>
 {% else %}<p>Publish the minimum only. No reviewed impact totals are included yet.</p>{% endif %}
 <p>This sends only the public minimum, reviewed totals and dates. It does not send names, wallet transactions, credentials, internal pricing or the reconciliation note.</p>
 <form method="post">

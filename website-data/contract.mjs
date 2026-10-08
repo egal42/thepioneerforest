@@ -16,7 +16,7 @@ export function validateSummary(input,now=new Date()){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(p?.asOf||'')) throw new Error('Choose the date through which records have been checked');
     const date=new Date(p.asOf+'T00:00:00Z');
     if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==p.asOf||p.asOf>now.toISOString().slice(0,10)) throw new Error('Invalid review date');
-    impact={contributionsPi:decimal(p.contributionsPi,7,1e12),estimatedCo2Kg:decimal(p.estimatedCo2Kg,3,1e15),trees:p.trees==null?null:decimal(p.trees,0,1e12),asOf:p.asOf};
+    impact={estimatedCo2Kg:decimal(p.estimatedCo2Kg,3,1e15),trees:decimal(p.trees,0,1e12),asOf:p.asOf};
   }
   const summary={schema:defaultSummary.schema,minimumCo2KgPerPi,impact};
   return {...summary,revision:createHash('sha256').update(JSON.stringify(summary)).digest('hex')};

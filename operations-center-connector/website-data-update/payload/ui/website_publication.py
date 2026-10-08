@@ -41,7 +41,7 @@ def _minimum(config):
 
 
 def _payload(draft, minimum):
-    fields = ("contributions_pi", "estimated_co2_kg", "trees", "as_of")
+    fields = ("estimated_co2_kg", "trees", "as_of")
     impact = None
     if any(str(draft.get(k) or "").strip() for k in fields):
         date = str(draft.get("as_of") or "")
@@ -50,9 +50,8 @@ def _payload(draft, minimum):
         checked = datetime.strptime(date, "%Y-%m-%d").date()
         if checked > datetime.now(UTC).date():
             raise ValueError("The review date cannot be in the future.")
-        impact = {"contributionsPi": _decimal(draft.get("contributions_pi"), 7, 1e12),
-                  "estimatedCo2Kg": _decimal(draft.get("estimated_co2_kg"), 3, 1e15),
-                  "trees": _decimal(draft["trees"], 0, 1e12) if draft.get("trees") else None,
+        impact = {"estimatedCo2Kg": _decimal(draft.get("estimated_co2_kg"), 3, 1e15),
+                  "trees": _decimal(draft.get("trees"), 0, 1e12),
                   "asOf": date}
     payload = {"schema": "tpf_website_summary_v1", "environment": "mainnet",
                "minimumCo2KgPerPi": minimum, "impact": impact}
@@ -69,7 +68,7 @@ def screen(path, config, environment, origin, secret):
     draft = state.get("draft", {})
     if not draft and published and published.get("impact"):
         impact = published["impact"]
-        draft = {"contributions_pi": impact["contributionsPi"], "estimated_co2_kg": impact["estimatedCo2Kg"],
+        draft = {"estimated_co2_kg": impact["estimatedCo2Kg"],
                  "trees": impact.get("trees") or "", "as_of": impact["asOf"]}
     try:
         minimum = _minimum(config)
@@ -90,7 +89,7 @@ def handle_form(form, path, config, environment, origin, secret):
         if environment != "mainnet":
             raise ValueError("Test and sandbox data cannot be published.")
         if form.get("action") == "review":
-            draft = {k: str(form.get(k) or "").strip() for k in ("contributions_pi", "estimated_co2_kg", "trees", "as_of", "review_note")}
+            draft = {k: str(form.get(k) or "").strip() for k in ("estimated_co2_kg", "trees", "as_of", "review_note")}
             draft["review_note"] = draft["review_note"][:2000]
             state.update(draft=draft, reviewed_revision=None)
             _write(path, state)
