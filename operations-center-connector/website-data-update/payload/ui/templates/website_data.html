@@ -1,38 +1,45 @@
 {% extends "layout.html" %}
 {% block content %}
-<p><a href="{{ url_for('settings') }}">← Settings</a> · <a href="{{ url_for('records') }}">Review records</a> · <a href="{{ url_for('project_library') }}">Review planting records</a></p>
+<p><a href="{{ url_for('settings') }}">← Settings</a> · <a href="{{ url_for('project_library') }}">Planting records</a></p>
 <h2>Public website data</h2>
-<p>One reviewed summary supplies the website’s current minimum and impact totals. Partner Pool balances and rewards use their existing online records.</p>
+<p>Totals come from your historical planting import, direct plantings and pool backing. Each planting is counted once. Rewards and allocations do not add new trees.</p>
 {% if result %}<p role="status">{{ result.message }}</p>{% endif %}
-{% if data.error %}<p role="alert">{{ data.error }}</p>{% endif %}
-<p><strong>Destination:</strong> {{ data.origin }} · <strong>Environment:</strong> {{ data.environment }}</p>
-<p><strong>Current local minimum:</strong> {{ data.minimum }} kg estimated CO₂ capture per Pi. <a href="{{ url_for('settings') }}">Change the setting</a></p>
-{% if data.published %}<p><strong>Last online publication:</strong> {{ data.published.publishedAt or 'No reviewed summary yet' }} · Minimum {{ data.published.minimumCo2KgPerPi }} kg/Pi</p>{% endif %}
-<p>Before publishing, reconcile the complete totals, including historical records. Count each planting once. Pool backing and the rewards shared from that pool are not two separate plantings. These values are not calculated by adding every file in the data folder.</p>
-<form method="post">
-  <fieldset><legend>Reviewed totals</legend>
-  <p><label>Estimated CO₂ capture (kg)<br><input name="estimated_co2_kg" inputmode="decimal" value="{{ data.draft.estimated_co2_kg or '' }}"></label></p>
-  <p><label>Total planted trees<br><input name="trees" inputmode="numeric" value="{{ data.draft.trees or '' }}"></label></p>
-  <p><label>Records checked through<br><input name="as_of" type="date" value="{{ data.draft.as_of or '' }}"></label></p>
-  <p><label>Reconciliation note (kept locally)<br><textarea name="review_note" rows="3" maxlength="2000">{{ data.draft.review_note or '' }}</textarea></label></p>
-  <p>Use complete planting totals, not just the latest planting. For the first publication, reconcile the old public summary with the current TPF records. A planting certificate supports a CO₂ estimate; it does not mean all that capture is already complete.</p>
-  </fieldset>
-  <p><button name="action" value="review">Save and review draft</button></p>
-</form>
-{% if data.review %}
-<section style="border:1px solid #ccc;padding:16px;margin:20px 0">
-<h3>Ready for your review</h3>
-<p>Minimum: <strong>{{ data.review.minimumCo2KgPerPi }} kg/Pi</strong></p>
-{% if data.review.impact %}
-<p>Estimated CO₂ capture: <strong>{{ data.review.impact.estimatedCo2Kg }} kg</strong> · Trees: {{ data.review.impact.trees }} · Records checked through: {{ data.review.impact.asOf }}</p>
-{% else %}<p>Publish the minimum only. No reviewed impact totals are included yet.</p>{% endif %}
-<p>This sends only the public minimum, reviewed totals and dates. It does not send names, wallet transactions, credentials, internal pricing or the reconciliation note.</p>
-<form method="post">
- <input type="hidden" name="action" value="publish">
- <input type="hidden" name="draft_revision" value="{{ data.review.revision }}">
- <p><label><input type="checkbox" name="confirmed" value="yes" required> I checked these complete figures and want to publish them to {{ data.origin }}.</label></p>
- <button {% if not data.can_publish %}disabled{% endif %}>Publish website data</button>
-</form>
+<section style="padding:18px;border:1px solid #ccc;border-left:6px solid {{ '#38984a' if data.current else '#bd8524' }};background:{{ '#f2fbf3' if data.current else '#fff9ed' }};margin:18px 0" aria-label="Website sync status">
+<h3 style="margin-top:0">{{ data.label }}</h3>
+<p><strong>{{ data.calculation.trees }} planted trees</strong> · <strong>{{ data.calculation.co2 }} kg estimated CO₂ capture</strong> · Minimum <strong>{{ data.minimum }} kg/Pi</strong></p>
+<p>Last successful check: {{ data.state.last_success or 'Not synced yet' }}<br>Last website change: {{ data.published.publishedAt or 'Not published yet' }}</p>
+{% if data.state.error %}<p role="alert">{{ data.state.error }}</p>{% endif %}
+{% if data.state.automatic_enabled %}<p>Checks run automatically every minute while Operations Center is open. If the connection fails, the last website figures stay visible and the next check retries. After restarting, syncing resumes automatically.</p>
+{% else %}<p>Check that the calculation includes your full planting history once, then enable automatic updates below.</p>{% endif %}
+<p>Destination: {{ data.origin }} · Environment: {{ data.environment }}</p>
 </section>
+{% if data.calculation.issues %}<h3>Records needing attention</h3><ul>{% for issue in data.calculation.issues %}<li>{{ issue }}</li>{% endfor %}</ul><p>The website keeps its last successful totals until these records are corrected.</p>{% endif %}
+<details {% if not data.state.automatic_enabled %}open{% endif %}>
+<summary><strong>Show calculation — {{ data.calculation.rows|length }} unique plantings</strong></summary>
+<p>{{ data.calculation.source_count }} source entries checked; {{ data.calculation.duplicates }} duplicate references counted only once. Closed pools remain part of the planted total.</p>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Planting proof</th><th align="right">Trees</th><th align="right">Estimated CO₂ (kg)</th><th align="left">Sources checked</th></tr></thead><tbody>
+{% for row in data.calculation.rows %}<tr style="border-bottom:1px solid #ddd"><td style="padding:8px;overflow-wrap:anywhere">{{ row.proofs|join(', ') }}</td><td align="right">{{ row.trees }}</td><td align="right">{{ row.co2 }}</td><td style="padding:8px;overflow-wrap:anywhere">{{ row.sources|join(', ') }}</td></tr>{% endfor %}
+</tbody><tfoot><tr><th align="left">Total</th><th align="right">{{ data.calculation.trees }}</th><th align="right">{{ data.calculation.co2 }}</th><td></td></tr></tfoot></table>
+</details>
+{% if data.can_enable %}
+<form method="post" style="margin:24px 0;padding:16px;border:1px solid #ccc">
+<input type="hidden" name="action" value="enable"><input type="hidden" name="fingerprint" value="{{ data.calculation.fingerprint }}">
+<p><label><input type="checkbox" name="confirmed" value="yes" required> I checked that these calculated records include the complete planting history.</label></p>
+<button>Enable automatic website updates</button>
+</form>
 {% endif %}
+{% if data.can_reconcile %}
+<form method="post" style="margin:24px 0;padding:16px;border:1px solid #ccc">
+<input type="hidden" name="action" value="reconcile"><input type="hidden" name="fingerprint" value="{{ data.calculation.fingerprint }}">
+<p><label>Correction reason (kept locally)<br><textarea name="reason" maxlength="2000" required></textarea></label></p>
+<p><label><input type="checkbox" name="confirmed" value="yes" required> I checked the complete calculation and the corrected records.</label></p>
+<button>Accept reviewed correction and resume</button>
+<p>Use this after correcting records or checking a change made elsewhere. Routine new plantings do not need this step.</p>
+</form>
+{% endif %}
+<details style="margin:20px 0"><summary>How totals are counted</summary>
+<p>Certificate, tree and Tree-Nation payment references identify duplicate records. Different quantities for the same proof stop syncing and appear above. A previously counted planting disappearing also stops syncing.</p>
+<p>Only the minimum, total trees, estimated CO₂ and calculation date go to the website. CO₂ is an estimate of capture over time.</p>
+{% if data.calculation.ignored %}<p>{{ data.calculation.ignored|length }} unsuccessful API responses excluded.</p>{% endif %}
+</details>
 {% endblock %}

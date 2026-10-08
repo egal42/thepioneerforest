@@ -7750,13 +7750,26 @@ def website_data():
     state_path = DATA_ROOT / "website-data" / "publication.json"
     config = load_json(CONFIG_FILE, {}) or {}
     environment = active_environment_config()["key"]
+    if DATA_ROOT.name != environment:
+        environment = "sandbox"
     origin = os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org").rstrip("/")
     secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
     result = None
     if request.method == "POST":
-        result = handle_form(request.form, state_path, config, environment, origin, secret)
-    data = screen(state_path, config, environment, origin, secret)
+        result = handle_form(request.form, state_path, config, environment, origin, secret, DATA_ROOT)
+    data = screen(state_path, config, environment, origin, secret, DATA_ROOT)
     return render_template("website_data.html", data=data, result=result)
+
+
+def _website_sync_configuration():
+    return (DATA_ROOT / "website-data" / "publication.json", DATA_ROOT,
+            load_json(CONFIG_FILE, {}) or {}, (active_environment_config()["key"] if DATA_ROOT.name == active_environment_config()["key"] else "sandbox"),
+            os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org").rstrip("/"),
+            os.getenv("TPF_OPS_SYNC_SECRET", ""))
+
+
+from website_publication import start_worker as _start_website_worker
+_start_website_worker(_website_sync_configuration)
 
 
 if __name__ == "__main__":

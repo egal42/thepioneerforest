@@ -29,17 +29,17 @@ test('HTTP publication is signed, idempotent and rejects stale overwrites',async
    const response=await handler(new Request('https://isolated.invalid'+path,{method,headers,...(body===undefined?{}:{body:raw})}));return{status:response.status,data:await response.json()};
   }
   assert.deepEqual((await call('/api/website-data')).data,defaultSummary);
-  assert.equal((await call('/api/ops/website-data')).status,401);
+  assert.equal((await call('/api/website-data/admin')).status,401);
   assert.equal((await call('/api/website-data',draft)).status,405);
-  assert.equal((await call('/api/ops/website-data',draft)).status,401);
-  assert.equal((await call('/api/ops/website-data',{...draft,environment:'sandbox'},true)).status,400);
-  const first=await call('/api/ops/website-data',{...draft,additionPercent:25,reviewNote:'private'},true);assert.equal(first.status,200);
-  const retry=await call('/api/ops/website-data',draft,true);assert.deepEqual(retry,first);
+  assert.equal((await call('/api/website-data/admin',draft)).status,401);
+  assert.equal((await call('/api/website-data/admin',{...draft,environment:'sandbox'},true)).status,400);
+  const first=await call('/api/website-data/admin',{...draft,additionPercent:25,reviewNote:'private'},true);assert.equal(first.status,200);
+  const retry=await call('/api/website-data/admin',draft,true);assert.deepEqual(retry,first);
   assert.equal((await query('SELECT count(*) FROM website_summary_history')).rows[0].count,1);
-  assert.equal((await call('/api/ops/website-data',{...draft,minimumCo2KgPerPi:'21'},true)).status,409);
+  assert.equal((await call('/api/website-data/admin',{...draft,minimumCo2KgPerPi:'21'},true)).status,409);
   assert.deepEqual((await call('/api/website-data')).data,first.data);
-  const second=await call('/api/ops/website-data',{...draft,minimumCo2KgPerPi:'21',expectedRevision:first.data.revision},true);assert.equal(second.status,200);
-  assert.equal((await call('/api/ops/website-data',{...draft,impact:{...draft.impact,asOf:'2999-01-01'},expectedRevision:second.data.revision},true)).status,400);
+  const second=await call('/api/website-data/admin',{...draft,minimumCo2KgPerPi:'21',expectedRevision:first.data.revision},true);assert.equal(second.status,200);
+  assert.equal((await call('/api/website-data/admin',{...draft,impact:{...draft.impact,asOf:'2999-01-01'},expectedRevision:second.data.revision},true)).status,400);
   assert.deepEqual((await call('/api/website-data')).data,second.data);
   assert.equal((await query('SELECT count(*) FROM website_summary_history')).rows[0].count,2);
   assert(!JSON.stringify(second.data).includes('private'));assert(!JSON.stringify(second.data).includes('additionPercent'));
