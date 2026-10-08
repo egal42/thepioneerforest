@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "ui/app.py",
+      "old_sha256": "314809d23336a97a12f2c89963d204c770f97ced7d1688d513a376c91e10d830",
+      "new_sha256": "4e7b102c7add0d14b4b53a3706a3c2652204ad4b02cbe43bd7ea7d9ee94d828e"
+    },
+    {
+      "path": "ui/partner_payment.py",
+      "old_sha256": "798580c04bf475159a70ae2b14f46c15d674c7c8f32dae6d7aaac05a2e8b15a8",
+      "new_sha256": "798580c04bf475159a70ae2b14f46c15d674c7c8f32dae6d7aaac05a2e8b15a8"
+    },
+    {
+      "path": "ui/partner_pool_order.py",
+      "old_sha256": null,
+      "new_sha256": "c8e10f9d3b3374ac283f6ffa37c2203eebac34801f1c23a5c19400014efe58bd"
+    },
+    {
+      "path": "ui/templates/partner_order_planting.html",
+      "old_sha256": null,
+      "new_sha256": "fa8d17b3893b0f9d1e016ef3fdd70fee1a10132ce7323e851bc8fd009fdc0f74"
+    },
+    {
+      "path": "ui/templates/partner_portal_inbox.html",
+      "old_sha256": "54afe65631114dbd5ce1924241b2a627bfb04546cc685275c10ec39a715f2e7c",
+      "new_sha256": "7294e2af8c376bd3531df5861d947f54f6cf67d37c593d911d6f4972b119c16b"
+    }
+  ]
+}

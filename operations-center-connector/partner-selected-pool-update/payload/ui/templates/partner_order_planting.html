@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+<p><a href="{{ url_for('partner_portal_inbox') }}">← Online partner activity</a></p>
+<h2>Review selected partner pool</h2>
+<p>No planting purchase has been made by preparing this page.</p>
+<h3>{{ partner.name }}</h3>
+<dl>
+  <dt>Selected project</dt><dd>{{ choice.project }} ({{ choice.project_id }})</dd>
+  <dt>Selected species</dt><dd>{{ choice.common_name }} · {{ choice.species }} ({{ choice.species_id }})</dd>
+  <dt>Exact quantity</dt><dd>{{ choice.trees }} trees</dd>
+  <dt>Estimated CO₂ capture</dt><dd>{{ choice.co2_kg }} kg over time</dd>
+  <dt>Sharing basis</dt><dd>{{ draft.basis }}</dd>
+  <dt>Verified partner payment</dt><dd>{{ choice.partner_price_pi }} Pi</dd>
+  <dt>Planting cost — internal</dt><dd>€{{ choice.planting_cost_eur }}</dd>
+  <dt>Payment transaction</dt><dd style="overflow-wrap:anywhere">{{ draft.tx_hash }}</dd>
+  <dt>Pool owner</dt><dd>{{ partner.name }} ({{ draft.partner_id }})</dd>
+  <dt>Reserved pool ID</dt><dd>{{ draft.pool_id }}</dd>
+</dl>
+<p>The catalogue will be refreshed before planting. A changed cost, CO₂ estimate or insufficient stock stops the purchase for review. Another option will not be substituted.</p>
+<form method="post" action="{{ url_for('partner_order_plant_selected_pool', partner_id=draft.partner_id, request_id=draft.request_id) }}">
+  <input type="hidden" name="revision" value="{{ draft.revision }}">
+  <p><label>Pool name<br><input name="pool_name" value="{{ pool_name }}" maxlength="160" required style="width:95%"></label></p>
+  <p><label>Public Tree-Nation message<br><textarea name="tree_nation_message" rows="8" required style="width:95%">{{ tree_nation_message }}</textarea></label></p>
+  <p>Keep #ThePioneerForest in the message. The pool is connected to the partner's page only after planting proof is verified.</p>
+  <p><label><input type="checkbox" name="confirm_offer" value="yes" required> I checked the paid order, exact selected option and partner ownership.</label></p>
+  <p><label>Type YES to approve this Tree-Nation purchase<br><input name="confirm" pattern="YES" required autocomplete="off"></label></p>
+  <button type="submit">Plant the exact selected pool</button>
+</form>
+{% endblock %}
