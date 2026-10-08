@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="/partner-portal/theme.js"></script>
+<script>window.__TPF_BRAND_INITIAL__ = {id:{{ workspace_data.profile.id|tojson }},colors:{{ workspace_data.profile.colors|tojson }}};</script>
+<script src="/static/partner-workspace/theme.js"></script>
 <title>Partner workspace · The Pioneer Forest</title>
 <style>
 :root{--bg:#041524;--panel:#17435F;--accent:#43DCFF;--spark:#E2AC78;--text:#EEF9FF;--line:#28543D}
@@ -15,11 +16,10 @@ input,select,textarea{width:100%;padding:12px;background:#fff;color:#152828;bord
 textarea{min-height:80px}button{cursor:pointer;padding:11px 16px;margin-top:16px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:#102626;font-weight:700}
 button:disabled{opacity:.6;cursor:wait}.muted{opacity:.8}.error{color:#ffb4b4}.success{color:#b5f2c6}
 .pool{padding:16px;border:1px solid var(--line);border-radius:12px}a{color:var(--accent)}
-</style>
+ .admin-readonly-banner{padding:16px 24px;background:#fff0ad;color:#25210f;text-align:center;font-weight:750}.admin-readonly-banner a{color:#25210f}.admin-readonly-banner small{display:block;font-weight:400} </style>
 <header><div class="brand"><img id="header-logo" hidden alt=""><span><strong id="header-name">The Pioneer Forest</strong><small>Partner workspace</small></span></div><span class="tpf-brand">THE PIONEER FOREST<small>Pi-powered Reforestation</small></span></header>
-<main>
+<aside class="admin-readonly-banner">TPF ADMIN · READ-ONLY ONLINE WORKSPACE<br><small>Loaded from {{ portal_origin }} at {{ retrieved_at }}. Latest 100 requests, offers and rewards. Visibility does not confirm the partner has read an offer.</small><a href="{{ admin_partner_url }}">← Back to partner</a> · <a href="">Refresh online data</a></aside><script id="admin-workspace-data" type="application/json">{{ workspace_data|tojson }}</script><main>
 <nav id="workspace-nav" hidden><a id="public-link" hidden>View public page →</a><button id="logout">Sign out</button></nav>
-<p id="entry-navigation"><a id="entry-back" href="/">← Back to The Pioneer Forest</a></p>
 <p id="message" role="status" aria-live="polite"></p>
 <section id="claim" class="panel" hidden>
   <h1>Set up partner access</h1><p>This invitation works once and expires after seven days.</p>
@@ -34,12 +34,10 @@ button:disabled{opacity:.6;cursor:wait}.muted{opacity:.8}.error{color:#ffb4b4}.s
     <label for="password">Password</label><input id="password" type="password" required autocomplete="current-password">
     <button>Sign in</button>
   </form>
-  <p class="muted access-recovery">Forgot your login details? Contact The Pioneer Forest through your usual contact channel.</p>
 </section>
 <section id="workspace" hidden>
   <section class="panel"><div class="eyebrow">Partner workspace</div><h1>Your Active Pools</h1><p class="muted">Choose a pool to see its balance and record a reward.</p><div id="pools" class="pool-tabs"></div><details id="completed-pools" hidden><summary>Completed pools</summary><div id="completed-list" class="pool-tabs"></div></details><p class="hint">Good to know: each pool has one fixed share basis, Trees or CO₂.</p></section>
   <div id="selected-workspace" class="workspace"></div>
-  <section id="reward-tools" class="panel reward-complete" hidden></section>
   <section id="rewards-section" hidden><h2>Rewards shared with Pioneers</h2><p class="muted">Review the rewards your team has shared and open their public records.</p><div id="rewards"></div></section>
   <div id="offers-section" class="panel" hidden><div class="eyebrow">Offer from The Pioneer Forest</div><h2>Offers &amp; orders</h2><div id="offers"></div></div>
   <div class="panel"><div class="eyebrow">Plan what comes next</div><h2>Request a new pool</h2><p>Tell The Pioneer Forest your Pi budget and preferred pool type. The team will review it and prepare an offer.</p>
@@ -52,8 +50,8 @@ button:disabled{opacity:.6;cursor:wait}.muted{opacity:.8}.error{color:#ffb4b4}.s
 </section>
 </main>
 <footer id="footer" hidden></footer>
-<link rel="stylesheet" href="/partner-portal/omc-layout.css">
-<link rel="stylesheet" href="/partner-portal/sandbox-design.css">
-<script type="module" src="./portal.js"></script>
-<link rel="stylesheet" href="/partner/orders.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='partner-workspace/omc-layout.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='partner-workspace/sandbox-design.css') }}">
+<script type="module" src="{{ url_for('static', filename='partner-workspace/readonly.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='partner-workspace/orders.css') }}">
 </html>

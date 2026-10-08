@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block content %}
+<p><a href="{{ url_for('partners_home') }}">← Partner Pools</a></p>
+<h2>Online partner activity</h2>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+{% if portal_ready %}
+<form method="post"><button type="submit">Fetch new activity</button></form>
+{% else %}<p>Connection is not configured yet. No online data has been imported.</p>{% endif %}
+<p>Requests and share records are saved in the local portal inbox. Review them here before taking action.</p>
+<h3>Partner access requests</h3>
+{% if access_error %}<p role="alert">{{ access_error }}</p>{% endif %}
+<p>Verify the partner's identity using your known contact channel. Open their Partner Pools admin page to create a new sign-in invitation, then send it privately. This request does not reset a password.</p>
+{% for item in access_requests %}
+<article style="border:1px solid #bfd0c2;border-radius:12px;padding:20px;margin:16px 0;overflow-wrap:anywhere">
+<strong>{{ item.identification }}</strong> · {{ item.status }} · {{ item.created_at }}
+<p>Contact provided: {{ item.contact }}</p><p>{{ item.note }}</p>
+{% if item.status == 'pending' %}<form method="post" action="{{ url_for('partner_access_handled',request_id=item.id) }}">
+<label><input type="checkbox" name="confirm_handled" value="yes" required> I verified and handled this request.</label> <button>Mark handled</button>
+</form>{% endif %}</article>
+{% else %}{% if not access_error %}<p>No access requests received.</p>{% endif %}{% endfor %}
+<h3>Pool requests and rewards</h3>
+{% for event in events %}
+<article style="border:1px solid #bfd0c2;border-radius:12px;padding:20px;margin:16px 0;overflow-wrap:anywhere">
+  {% set order = online_requests.get(event.entity_id if event.event_type == 'request.created' else event.offer_request_id, {}) %}
+  <strong>{{ event.partner_id }} · {{ {'offer.selected':'Selected partner order','request.created':'Pool request','share.created':'Pioneer reward'}.get(event.event_type,event.event_type) }}</strong>
+  {% if event.event_type == 'request.created' %}
+    {{ event.requested_pi }} Pi · {{ event.request_basis }} · {{ event.message }} · {{ order.status or "Current status unavailable" }}
+    <p><a href="{{ url_for('partner_pool_pricing', mode='budget', basis=event.request_basis, budget_pi=event.requested_pi, offer_name=event.partner_id ~ ' pool request') }}">Build offer from this request</a></p>
+    {% if portal_ready and order.status == 'new' %}<form method="post" action="{{ url_for('partner_portal_send_offer', partner_id=event.partner_id, request_id=event.entity_id) }}">
+      <label>Saved offer <select name="offer_id" required>
+        <option value="">Choose a ready offer</option>
+        {% for offer in ready_offers if offer.search.basis == event.request_basis %}
+          <option value="{{ offer.id }}">{{ offer.name }}</option>
+        {% endfor %}
+      </select></label> <button type="submit">Send offer to partner</button>
+    </form>{% endif %}
+    {% if portal_ready and order.status in ('new','offered','selected','payment_pending') %}<form method="post" action="{{ url_for('partner_portal_order', partner_id=event.partner_id, request_id=event.entity_id) }}">
+      <input type="hidden" name="action" value="cancel">
+      <label><input type="checkbox" name="confirm_action" value="yes" required> Close this unpaid/test request; keep existing pools and rewards.</label>
+      <button>Cancel request</button>
+    </form>{% endif %}
+  {% elif event.event_type == 'offer.selected' %}
+    <p>{{ "%g"|format(event.selected_price_pi|float) }} Pi · {{ event.selected_trees if event.selected_basis == 'trees' else event.selected_co2_kg }} {{ 'trees' if event.selected_basis == 'trees' else 'kg CO₂' }}</p>
+    <p><strong>{{ {'planting_pending':'Payment confirmed — prepare or connect the planted pool','connected':'Pool connected','payment_pending':'Payment pending','selected':'Payment pending','cancelled':'Order cancelled'}.get(order.status,'Status unavailable') }}</strong></p>
+    <details><summary>Audit details</summary>
+    <p>Wallet note to match: <strong>{{ event.partner_id.replace('-', '')[:6]|upper }}-{{ event.offer_request_id[-12:]|upper }}</strong></p>
+    <p>Current order status: {{ order.status or 'Unavailable' }}</p>
+    {% set audit = payment_audits.get(event.offer_request_id, {}) %}
+    {% if audit %}<p>Payment audit: {{ audit.status }} · {{ audit.tx_hash }}<br>
+      Match: {{ audit.match_method }} · {{ audit.match_note }}</p>{% endif %}
+    </details>
+    {% if portal_ready and (order.status in ('selected','payment_pending') or (audit and audit.status != 'complete' and order.status in ('planting_pending','connected'))) %}
+    <form method="post" action="{{ url_for('partner_portal_order', partner_id=event.partner_id, request_id=event.offer_request_id) }}">
+      <input type="hidden" name="action" value="confirm-payment">
+      <p><label>Incoming payment from Wallet Watcher
+      <select name="payment_reference" required>
+        <option value="">Choose the incoming payment</option>
+        {% if audit %}<option value="{{ audit.tx_hash }}" selected>{{ audit.amount_pi }} Pi · {{ audit.from_address }} · {{ audit.tx_hash }} (resume)</option>{% endif %}
+        {% for payment in payment_candidates %}
+          <option value="{{ payment.tx_hash }}" {% if not audit and payment.tx_hash == selected_payment_tx %}selected{% endif %}>{{ payment.amount_pi }} Pi · {{ payment.created_at }} · from {{ payment.from_address }} · {{ payment.tx_hash }}</option>
+        {% endfor %}
+      </select></label></p>
+      <p>The received amount, recipient and successful mainnet transaction are checked again on confirmation. Only the exact selected offer amount is accepted.</p>
+      <p><label>How was this payment matched?
+        <select name="match_method" required>
+          <option value="">Choose a matching method</option>
+          <option value="memo" {% if audit.match_method == 'memo' %}selected{% endif %}>Matching on-chain request memo</option>
+          <option value="manual" {% if audit.match_method == 'manual' %}selected{% endif %}>Manual match — missing or different memo</option>
+        </select>
+      </label></p>
+      <p><label>Internal matching explanation (required for a manual match)<br>
+        <textarea name="match_note" maxlength="1000" rows="3" cols="65" placeholder="Partner confirmed the sender wallet and payment for this offer; receipt checked.">{{ audit.match_note or '' }}</textarea>
+      </label></p>
+      <p><label><input type="checkbox" name="confirm_sender" value="yes" required> I verified the sender with the partner and confirmed this payment is for this selected offer.</label></p>
+      <p><label><input type="checkbox" name="confirm_action" value="yes" required> Record this payment against the order and Partner Pool Payments fund.</label></p>
+      <button>Record verified partner payment</button>
+    </form>
+    <p><a href="{{ url_for('wallet_watcher') }}">Refresh incoming payments in Wallet Watcher</a>. Selecting Partner Pool Payments there brings you back here; it creates no regular contribution.</p>
+    {% endif %}
+    <p>Promised: {{ event.selected_trees if event.selected_basis == 'trees' else event.selected_co2_kg }}
+      {{ 'trees' if event.selected_basis == 'trees' else 'kg CO₂' }}.
+      Verify payment and planting in the Operations Center before connecting a pool.</p>
+    {% if order.status == 'planting_pending' and audit.status == 'complete' and not connectable.get(event.id|string) and not connected_by_request.get(event.offer_request_id) %}
+      <form method="post" action="{{ url_for('partner_order_prepare_pool', partner_id=event.partner_id, request_id=event.offer_request_id) }}">
+        <button>Prepare selected pool — review before planting</button>
+      </form>
+    {% endif %}
+    {% if connected_by_request.get(event.offer_request_id) %}
+      <p>Locally connected to {{ connected_by_request[event.offer_request_id] }}. Use Publish / sync on the partner page to retry if needed.</p>
+    {% elif order.status == 'planting_pending' and connectable.get(event.id|string) and (not audit or audit.status == 'complete') %}
+      <form method="post" action="{{ url_for('partner_portal_connect_pool', partner_id=event.partner_id, request_id=event.offer_request_id) }}">
+        <label>Verified dedicated pool
+          <select name="pool_id" required>
+            <option value="">Choose the planted pool</option>
+            {% for pool in connectable[event.id|string] %}
+              <option value="{{ pool.pool_id }}">{{ pool.name }} ({{ pool.pool_id }})</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label><input type="checkbox" name="confirm_verified" value="yes" required>
+          I checked the payment, planting proof, partner ownership, and promised amount.</label>
+        <button type="submit">Connect verified pool and publish</button>
+      </form>
+    {% else %}<p>No suitable verified pool is available yet.</p>{% endif %}
+  {% else %}
+    {{ event.pioneer_name }} · {{ event.units }} from {{ event.pool_id }} · {{ event.reason }}
+  {% endif %}
+  <details><summary>Event reference</summary><small>{{ event.created_at }} · Online event {{ event.id }} · {{ event.entity_id }}</small></details>
+</article>
+{% else %}<p>No online activity received yet.</p>{% endfor %}
+{% endblock %}

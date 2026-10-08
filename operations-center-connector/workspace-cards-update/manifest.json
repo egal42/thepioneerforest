@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "ui/static/partner-workspace/orders.css",
+      "old_sha256": null,
+      "new_sha256": "b4af4f8060dcbc96067700ea9b65bfdbdeee0ae4459025f9c7a89d15809e1861"
+    },
+    {
+      "path": "ui/static/partner-workspace/orders.js",
+      "old_sha256": null,
+      "new_sha256": "76878a1fd48b11b359fb3615ccb0e2159fdfa02a4d15c9a6150590bd24ad8b51"
+    },
+    {
+      "path": "ui/static/partner-workspace/readonly.js",
+      "old_sha256": "f8672dee57b1c445ea1dbc5373f0e4050a39913622e61fe012f932c3fd0dacb4",
+      "new_sha256": "b1f0ecb8b1cbf3aa0a2682b3929cf10047c2df3f02f55ea14843ae5663c160e9"
+    },
+    {
+      "path": "ui/templates/partner_portal_inbox.html",
+      "old_sha256": "7294e2af8c376bd3531df5861d947f54f6cf67d37c593d911d6f4972b119c16b",
+      "new_sha256": "bcc9db067d58d23a15102ff5d6a12959ea9746172415462ea50c5485f4393f0a"
+    },
+    {
+      "path": "ui/templates/partner_workspace_readonly.html",
+      "old_sha256": "a9310ef49b03b245d5ec5a127d8a6c639f1bad16b6b2e3f225f95e688157a407",
+      "new_sha256": "aeb1e99ade8aafba2350a1ec75b3b33082ae411becb10249b92f7bce6d528a70"
+    }
+  ]
+}
