@@ -1,24 +1,29 @@
 {
   "files": [
     {
-      "path": "ui/website_publication.py",
-      "old_sha256": null,
-      "new_sha256": "9ec2fcf8c4a5d526b34e856ef7460c0ccde12f14f333eab52d531d0dff9785a9"
-    },
-    {
       "path": "ui/app.py",
-      "old_sha256": "4e7b102c7add0d14b4b53a3706a3c2652204ad4b02cbe43bd7ea7d9ee94d828e",
-      "new_sha256": "03622cb6652668715d4fb1f43c18f13b9feb25f0db8d0826eb0f70d0cbafa31f"
+      "old_sha256": "03622cb6652668715d4fb1f43c18f13b9feb25f0db8d0826eb0f70d0cbafa31f",
+      "new_sha256": "e8f41e35ca0d4416cdaac231a932d7e21f4e3bef824f301d2cb3b3eb91f87a14"
     },
     {
       "path": "ui/templates/settings_website.html",
-      "old_sha256": null,
-      "new_sha256": "d1805a53d0ac6ca43a66b75a49b5d3251bb7202bf1ac0c11d967d5960015bcd1"
+      "old_sha256": "d1805a53d0ac6ca43a66b75a49b5d3251bb7202bf1ac0c11d967d5960015bcd1",
+      "new_sha256": "421df3aa39aa5bff7e0af27a7bcebb48d2d28df1265a7cd96cfbbc3d261653bc"
     },
     {
       "path": "ui/templates/website_data.html",
+      "old_sha256": "dfe4c47376325ab8465380234ea1f4520eb14a57572129e64f6cbebb2a039e2f",
+      "new_sha256": "68807e02d5b8a0359ff6ac97c632ad3f8fc22a94d64dc265ee9e4ac80393ef7b"
+    },
+    {
+      "path": "ui/website_calculation.py",
       "old_sha256": null,
-      "new_sha256": "dfe4c47376325ab8465380234ea1f4520eb14a57572129e64f6cbebb2a039e2f"
+      "new_sha256": "e07cd55a450c6e9e35c66b9ef6156b6bc166e2359c3a76b532955809b4f90114"
+    },
+    {
+      "path": "ui/website_publication.py",
+      "old_sha256": "9ec2fcf8c4a5d526b34e856ef7460c0ccde12f14f333eab52d531d0dff9785a9",
+      "new_sha256": "d454ae44b870a334a61438aaa4de0b70fd6452f5efc623a46d789ea18ac9764b"
     }
   ]
 }

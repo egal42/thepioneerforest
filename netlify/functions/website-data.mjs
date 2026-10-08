@@ -4,7 +4,7 @@ import {validateSummary,defaultSummary} from '../../website-data/contract.mjs';
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});
 export default async function handler(request){
  const path=new URL(request.url).pathname;
- const admin=path==='/api/ops/website-data';
+ const admin=path==='/api/website-data/admin';
  if(!admin&&path!=='/api/website-data')return json({error:'Not found'},404);
  if(!['GET','POST'].includes(request.method)||(!admin&&request.method!=='GET'))return json({error:'Method not allowed'},405);
  const body=request.method==='POST'?await request.text():'';
@@ -33,4 +33,4 @@ export default async function handler(request){
   }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
  }catch(e){console.error('Website summary error:',e.message);return json({error:'Public summary temporarily unavailable'},503);}
 }
-export const config={path:['/api/website-data','/api/ops/website-data']};
+export const config={path:['/api/website-data','/api/website-data/admin']};
