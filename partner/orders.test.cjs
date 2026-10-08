@@ -1,0 +1,20 @@
+const {JSDOM}=require('jsdom');const fs=require('fs');const assert=require('assert');
+(async()=>{
+ const dom=new JSDOM('<section id="workspace"><div id="offers-section"><h2>old heading</h2><div id="offers"></div></div><div id="requests"></div></section>',{url:'https://thepioneerforest.org/partner/'});
+ for(const key of ['document','localStorage','location'])global[key]=dom.window[key];
+ const m=await import('data:text/javascript;base64,'+fs.readFileSync(__dirname+'/orders.js').toString('base64'));
+ const base={profile:{id:'gpm',status:'active'},requests:[{id:'req-123456789012',status:'connected',pool_id:'pool_007',payment_reference:'a'.repeat(64),created_at:'2026-10-08T14:00:00Z'}],pools:[{id:'pool_007',name:'GPM Green Pioneer Mission — Tree Pool 01',basis:'trees',total_units:'48',shared_units:'0',share_count:'0'}],offers:[{id:'offer',request_id:'req-123456789012',status:'selected',selected_key:'716:3493'}],choices:[{offer_id:'offer',choice_key:'716:3493',common_name:'Lemon',species:'Citrus limon',project:'Mt. Elgon',trees:'48',co2_kg:'960.000',price_pi:'300.0000000'},{offer_id:'offer',choice_key:'716:other',common_name:'Other',project:'Other project',trees:33,co2_kg:660,price_pi:'294.6500000'}],shares:[]};
+ const q=s=>document.querySelector(s),count=s=>document.querySelectorAll(s).length;let chosen;
+ const render=(data=base,readOnly=false)=>m.renderOrders({data,readOnly,onChoose:async(...args)=>{chosen=args}});
+ render();assert.equal(count('#order-notices article'),1);assert.equal(q('#offers-section h2').textContent,'Offers & orders');assert.equal(q('.order-details').open,false);assert(q('.order-card').textContent.includes('300 Pi'));assert(!q('.order-card').textContent.includes('300.000'));q('.notice-dismiss').click();render();assert.equal(count('#order-notices article'),0);assert.equal(m.notices(base,k=>localStorage.getItem(k)==='dismissed').length,0);
+ const other=structuredClone(base);other.profile.id='omc';render(other);assert.equal(count('#order-notices article'),1);
+ const newer=structuredClone(base);newer.requests[0].pool_id='pool_008';newer.pools[0].id='pool_008';render(newer);assert.equal(count('#order-notices article'),1);
+ const shared=structuredClone(newer);shared.pools[0].share_count='1';render(shared);assert.equal(count('#order-notices article'),0);shared.pools[0].share_count=0;shared.shares=[{pool_id:'pool_008'}];render(shared);assert.equal(count('#order-notices article'),0);
+ render(base,true);assert.equal(count('#order-notices article'),1);assert.equal(count('.notice-dismiss'),0);
+ for(const status of ['new','offered','selected','payment_pending','planting_pending','cancelled']){const d=structuredClone(base);d.requests[0].status=status;d.requests[0].payment_reference=null;d.requests[0].pool_id=null;d.offers[0].status=status==='offered'?'offered':'selected';render(d);assert.equal(count('#order-notices article'),status==='cancelled'?0:1);assert.equal(count('.payment-instructions'),['selected','payment_pending'].includes(status)?1:0);if(status==='offered'){q('.offer-option button').click();await Promise.resolve();assert.deepEqual(chosen,['offer','716:3493']);render(d,true);assert(q('.offer-option button').disabled);}}
+ const multi=structuredClone(newer);multi.requests.push({...base.requests[0],id:'second-request'});multi.pools.push(base.pools[0]);render(multi,true);assert.equal(count('#order-notices article'),2);
+ const unsafe=structuredClone(newer);unsafe.pools[0].name='<img src=x onerror=alert(1)>';render(unsafe);assert.equal(count('.order-card img'),0);
+ const nooffer=structuredClone(base);nooffer.requests[0].status='new';nooffer.offers=[];render(nooffer);assert.equal(q('.order-notice a').getAttribute('href'),'#requests');
+ const fractional=structuredClone(base);fractional.choices[0].price_pi='0.0000001';render(fractional,true);assert(q('.order-card').textContent.includes('0.0000001 Pi'));
+ console.log('PASS: all 7 order states; exact option selection; persisted dismissal; partner/pool isolation; first reward; read-only preview; multiple orders; safe text; request links; exact small payment display.');
+})();

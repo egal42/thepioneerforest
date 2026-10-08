@@ -199,7 +199,7 @@ def pending_donation_preview_for_file(item):
 
     amount_pi = donation.get("amount_pi", 0)
     pool_limit = config.get("co2_pool_auto_limit_pi", 5)
-    min_co2_per_pi = config.get("min_co2_per_pi", 20)
+    min_co2_per_pi = config.get("min_co2_per_pi", 30)
     pi_value = config.get("pi_value", 0)
     currency = config.get("currency", "EUR")
 
@@ -1140,9 +1140,9 @@ def pool_catalog_options(target_value, allocation_basis="co2", show_all=False):
     except Exception:
         pi_value_eur = 0.1
     try:
-        min_co2_per_pi = float(config.get("min_co2_per_pi", 20) or 20)
+        min_co2_per_pi = float(config.get("min_co2_per_pi", 30) or 30)
     except Exception:
-        min_co2_per_pi = 20.0
+        min_co2_per_pi = 30.0
 
     for project in catalog.get("projects", []):
         project_id = project.get("project_id")
@@ -1568,7 +1568,7 @@ def load_operational_settings():
     return {
         "pi_value": display_number(config.get("pi_value", 0.15)),
         "currency": config.get("currency", "EUR"),
-        "min_co2_per_pi": display_number(config.get("min_co2_per_pi", 20)),
+        "min_co2_per_pi": display_number(config.get("min_co2_per_pi", 30)),
         "co2_pool_auto_limit_pi": display_number(config.get("co2_pool_auto_limit_pi", 5)),
         "tpf_addition_percent": display_number(config.get("tpf_addition_percent") if config.get("tpf_addition_percent") not in (None, "") else 25),
         "config_file": str(CONFIG_FILE)
@@ -1621,7 +1621,7 @@ def save_operational_settings(form):
 
     try:
         pi_value = parse_number_input(form.get("pi_value"), current.get("pi_value", 0.15))
-        min_co2_per_pi = parse_number_input(form.get("min_co2_per_pi"), current.get("min_co2_per_pi", 20))
+        min_co2_per_pi = parse_number_input(form.get("min_co2_per_pi"), current.get("min_co2_per_pi", 30))
         co2_pool_auto_limit_pi = parse_number_input(form.get("co2_pool_auto_limit_pi"), current.get("co2_pool_auto_limit_pi", 5))
     except Exception:
         return {
@@ -2444,9 +2444,9 @@ def catalog_settings_viability():
         pi_value = 0.15
 
     try:
-        min_co2_per_pi = float(config.get("min_co2_per_pi", 20) or 20)
+        min_co2_per_pi = float(config.get("min_co2_per_pi", 30) or 30)
     except Exception:
-        min_co2_per_pi = 20
+        min_co2_per_pi = 30
 
     currency = config.get("currency", "EUR")
     test_amounts = [1, 2, 3, 5, 10, 50]
@@ -3422,9 +3422,9 @@ def record_detail(donation_id):
         except Exception:
             current_pi_value = 0.0
         try:
-            current_min_co2 = float(current_config.get("min_co2_per_pi", 20) or 20)
+            current_min_co2 = float(current_config.get("min_co2_per_pi", 30) or 30)
         except Exception:
-            current_min_co2 = 20.0
+            current_min_co2 = 30.0
         try:
             amount_pi = float(record.get("amount_pi", 0) or 0)
         except Exception:
@@ -4977,6 +4977,12 @@ def create_pending_donation_from_wallet_tx(tx, purpose_reason="", classification
 
 DEFAULT_TPF_FUNDS = [
     {
+        "id": "partner_pool_payments", "name": "Partner Pool Payments",
+        "fund_type": "base", "workflow": "record_only", "status": "active",
+        "description": "Verified partner offer payments. Match to a selected order; planting follows that offer.",
+        "sort_order": 15,
+    },
+    {
         "id": "reforestation_co2",
         "name": "Reforestation / CO₂",
         "fund_type": "base",
@@ -5553,6 +5559,14 @@ def wallet_watcher_classify():
 
     if not classification:
         return redirect("/wallet-watcher?classify=missing_classification")
+
+    # Partner payments are confirmed and booked together from the selected order.
+    # Selecting this option must not create a regular planting contribution.
+    if classification == "partner_pool_payments":
+        return redirect(url_for("partner_portal_inbox", payment_tx=tx_hash.lower()))
+    existing_classification = load_wallet_classification(tx_hash)
+    if existing_classification and existing_classification.get("partner_request_id"):
+        return "This payment belongs to a partner order. Review its audit record before any correction.", 409
 
     display_name = str(request.form.get("display_name") or "").strip()
     from_address = str(request.form.get("from_address") or "").strip()
@@ -6979,25 +6993,12 @@ def _partner_form_record(form, existing=None):
         "history": [],
     }
     if not existing:
-        slug = (form.get("partner_id") or "").strip().lower()
-        if not slug:
-            raise ValueError("Choose a Partner ID, such as gpm. Use lowercase letters, numbers and hyphens.")
-        if not _partner_id(slug) or len(slug) > 80:
-            raise ValueError("Use lowercase letters, numbers and single hyphens for the Partner ID.")
+        slug = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
+        if not _partner_id(slug):
+            raise ValueError("Enter a partner name containing letters or numbers.")
         if _read_partner(slug):
             raise ValueError("This partner already exists; open it to edit.")
         record["id"] = slug
-    login_id = (form.get("login_id") or record.get("login_id") or
-                ("gpm" if record["id"] == "global-pi-market" else record["id"])).strip().lower()
-    if not _partner_id(login_id) or len(login_id) > 80:
-        raise ValueError("Use lowercase letters, numbers and single hyphens for the login ID.")
-    for other in _all_partners():
-        other_login = other.get("login_id") or ("gpm" if other["id"] == "global-pi-market" else other["id"])
-        if other["id"] != record["id"] and login_id in (other["id"], other_login):
-            raise ValueError("This Partner ID is already used by another partner.")
-        if other["id"] != record["id"] and record["id"] == other_login:
-            raise ValueError("This Partner ID is already used by another partner.")
-    record["login_id"] = login_id
     record.update(name=name, section_title=section_title,
                   tagline=(form.get("tagline") or "").strip()[:240],
                   intro=(form.get("intro") or "").strip()[:1500],
@@ -7252,7 +7253,18 @@ def partner_portal_inbox():
                 os.getenv("TPF_OPS_SYNC_SECRET", ""), "GET", "/api/ops/access-requests").get("requests", [])
         except SyncError as exc:
             access_error = "Access requests unavailable: " + str(exc)
-    return render_template("partner_portal_inbox.html", access_requests=access_requests, access_error=access_error, online_requests=online_requests, events=events[:100], error=error,
+    recent = load_json(wallet_transactions_file(), {}) or {}
+    payment_candidates = [tx for tx in recent.get("transactions", [])
+                          if tx.get("network") == "mainnet" and tx.get("direction") == "incoming"
+                          and tx.get("blockchain_verified") and tx.get("asset_type") == "native"
+                          and not load_wallet_classification(tx.get("tx_hash"))]
+    selected_payment_tx = request.args.get("payment_tx", "").lower()
+    payment_audits = {}
+    for item in load_json_files(DATA_ROOT / "partner-pools" / "payment-matches"):
+        audit = item.get("data")
+        if isinstance(audit, dict):
+            payment_audits[audit.get("request_id")] = audit
+    return render_template("partner_portal_inbox.html", payment_candidates=payment_candidates, selected_payment_tx=selected_payment_tx, payment_audits=payment_audits, access_requests=access_requests, access_error=access_error, online_requests=online_requests, events=events[:100], error=error,
                            ready_offers=ready_offers, connectable=connectable,
                            connected_by_request=connected_by_request,
                            portal_ready=bool(os.getenv("TPF_OPS_SYNC_SECRET")))
@@ -7278,20 +7290,217 @@ def partner_portal_order(partner_id, request_id):
     from portal_sync import signed_request, SyncError
     if not _read_partner(partner_id) or not re.fullmatch(r"[a-f0-9-]{36}", request_id):
         return "Partner request not found", 404
+    origin = request.headers.get("Origin")
+    if origin and origin.rstrip("/") != request.host_url.rstrip("/"):
+        return "Cross-site payment actions are not allowed.", 403
     action = request.form.get("action")
     if action not in ("cancel", "confirm-payment"):
         return "Invalid action", 400
     if request.form.get("confirm_action") != "yes":
         return "Confirm the reviewed action first.", 400
-    body = {"partnerId": partner_id, "requestId": request_id, "action": action,
-            "paymentReference": request.form.get("payment_reference", "").strip().lower(),
-            "amountPi": request.form.get("amount_pi", "").strip(), "confirmVerified": True}
+    body = {"partnerId": partner_id, "requestId": request_id, "action": action}
+    if action == "cancel":
+        try:
+            signed_request(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
+                           os.getenv("TPF_OPS_SYNC_SECRET", ""), "POST", "/api/ops/order", body)
+        except SyncError as exc:
+            return "Order was not updated: " + str(exc), 409
+        return redirect(url_for("partner_portal_inbox"))
+    if ACTIVE_ENV != "mainnet":
+        return "Partner payment confirmation is available in mainnet only.", 409
+    if request.form.get("confirm_sender") != "yes":
+        return "Confirm that the sender belongs to the partner and this payment is for this selected offer.", 400
+    from partner_payment import verify_payment, check_match, payment_lock, write_audit, FUND_ID
+    tx_hash = request.form.get("payment_reference", "").strip().lower()
+    method = request.form.get("match_method", "")
+    note = request.form.get("match_note", "").strip()
+    root = DATA_ROOT / "partner-pools" / "payment-matches"
     try:
-        signed_request(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
-                       os.getenv("TPF_OPS_SYNC_SECRET", ""), "POST", "/api/ops/order", body)
-    except SyncError as exc:
-        return "Order was not updated: " + str(exc), 409
+        with payment_lock(root):
+            audit_path = root / (request_id + ".json")
+            previous = load_json(audit_path, {}) or {}
+            if previous and previous.get("tx_hash") != tx_hash:
+                raise ValueError("This order already has payment evidence. Review it before replacing a transaction.")
+            for item in load_json_files(root):
+                audit = item.get("data", {})
+                if audit.get("tx_hash") == tx_hash and audit.get("request_id") != request_id:
+                    raise ValueError("This transaction is already reserved for another partner order")
+            classification = load_wallet_classification(tx_hash)
+            if classification and classification.get("partner_request_id") != request_id:
+                raise ValueError("This payment is already classified. Reconcile its existing records before matching it.")
+            for entry in load_fund_ledger().get("entries", []):
+                if (entry.get("tx_hash", "").lower() == tx_hash
+                        and entry.get("partner_request_id") != request_id):
+                    raise ValueError("This transaction already has a fund entry. Reconcile it before matching.")
+            if tx_hash in donation_files_with_tx_hash():
+                raise ValueError("This payment already appears in the regular planting workflow. Reconcile before matching.")
+            evidence = verify_payment(tx_hash, load_wallet_sources(), requests.get)
+            events = [item.get("data", {}) for item in load_json_files(DATA_ROOT / "partner-pools" / "portal-inbox")]
+            selected = [event for event in events if event.get("event_type") == "offer.selected"
+                        and event.get("partner_id") == partner_id and event.get("offer_request_id") == request_id]
+            if len(selected) != 1:
+                raise ValueError("Fetch the selected offer into the local inbox first")
+            check_match(evidence, partner_id, request_id, selected[0].get("selected_price_pi"), method, note)
+            audit = dict(evidence, schema="tpf_partner_payment_match_v1", partner_id=partner_id,
+                         request_id=request_id, match_method=method, match_note=note,
+                         sender_confirmed=True, checked_at=now_iso(), status="prepared")
+            # Save evidence before changing the online order. Retrying the same hash
+            # resumes safely if network or local bookkeeping failed midway.
+            if previous.get("status") in ("online_confirmed", "complete"):
+                audit = previous
+            write_audit(audit_path, audit)
+            body.update(paymentReference=tx_hash, amountPi=evidence["amount_pi"], confirmVerified=True)
+            result = signed_request(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
+                                    os.getenv("TPF_OPS_SYNC_SECRET", ""), "POST", "/api/ops/order", body)
+            if result.get("status") not in ("planting_pending", "connected"):
+                raise ValueError("Unexpected online confirmation response; payment audit retained for review")
+            audit["status"] = "online_confirmed"
+            write_audit(audit_path, audit)
+            fund = get_fund(FUND_ID)
+            if not fund or fund.get("workflow") != "record_only" or fund.get("status") != "active":
+                raise ValueError("Partner payment fund must be active with Record only workflow; retry after correcting it")
+            partner = _read_partner(partner_id)
+            display_name = partner.get("name") or partner_id
+            entry = dict(evidence, direction="incoming", fund_id=FUND_ID,
+                         fund_name_snapshot=fund["name"], fund_type_snapshot=fund["fund_type"],
+                         wallet_address=evidence["from_address"], display_name=display_name,
+                         note=note, partner_id=partner_id, partner_request_id=request_id,
+                         source="verified_partner_order")
+            add_fund_ledger_entry(entry)
+            save_wallet_classification(tx_hash, dict(entry, classification="fund", fund_name=fund["name"],
+                fund_workflow="record_only", status="fund_recorded", confirmed_at=now_iso()))
+            audit["status"] = "complete"
+            write_audit(audit_path, audit)
+    except (ValueError, SyncError, requests.RequestException, OSError) as exc:
+        return "Payment matching did not finish: " + str(exc) + ". Review the local payment audit and retry the same transaction if needed.", 409
     return redirect(url_for("partner_portal_inbox"))
+
+
+
+def _paid_partner_pool_selection(partner_id, request_id):
+    from portal_sync import signed_request
+    from partner_pool_order import resolve_choice, selection_revision
+    if ACTIVE_ENV != "mainnet" or not _read_partner(partner_id) or not re.fullmatch(r"[a-f0-9-]{36}", request_id):
+        raise ValueError("Mainnet partner request not found")
+    events = [item.get("data", {}) for item in load_json_files(DATA_ROOT / "partner-pools" / "portal-inbox")]
+    selected = [event for event in events if event.get("event_type") == "offer.selected"
+                and event.get("partner_id") == partner_id and event.get("offer_request_id") == request_id]
+    if len(selected) != 1:
+        raise ValueError("Fetch the exact selected offer into online activity first")
+    event = selected[0]
+    offer = _read_partner_offer(event.get("entity_id", ""))
+    audit = load_json(DATA_ROOT / "partner-pools" / "payment-matches" / (request_id + ".json"), {}) or {}
+    online = signed_request(os.getenv("TPF_PORTAL_URL", "https://thepioneerforest.org"),
+                            os.getenv("TPF_OPS_SYNC_SECRET", ""), "GET", "/api/ops/workspace?partnerId=" + partner_id)
+    order = next((item for item in online.get("requests", []) if item.get("id") == request_id), {})
+    choice = resolve_choice(event, offer, audit, order)
+    return event, choice, audit, selection_revision(event, choice, audit)
+
+
+@app.route("/partners/<partner_id>/requests/<request_id>/prepare-pool", methods=["POST"])
+def partner_order_prepare_pool(partner_id, request_id):
+    from portal_sync import SyncError
+    from partner_payment import payment_lock, write_audit
+    from partner_pool_order import selected_catalog_option
+    if request.headers.get("Origin") and request.headers["Origin"].rstrip("/") != request.host_url.rstrip("/"):
+        return "Cross-site planting actions are not allowed.", 403
+    if ACTIVE_ENV != "mainnet" or not _read_partner(partner_id) or not re.fullmatch(r"[a-f0-9-]{36}", request_id):
+        return "Mainnet partner request not found", 404
+    root = DATA_ROOT / "partner-pools" / "planting-orders"
+    try:
+        with payment_lock(root):
+            event, choice, audit, revision = _paid_partner_pool_selection(partner_id, request_id)
+            path = root / (request_id + ".json")
+            draft = load_json(path, {}) or {}
+            if draft.get("status") == "created":
+                return redirect(url_for("pool_detail", pool_id=draft["pool_id"]))
+            if draft and draft.get("status") != "prepared":
+                raise ValueError("A planting attempt already exists. Check its Tree-Nation result before any further purchase.")
+            if draft and draft.get("revision") != revision:
+                raise ValueError("The prepared order differs from the saved selection. Review its audit before continuing.")
+            selected = selected_catalog_option(choice, load_json_path(DATA_ROOT / "tree-nation" / "full_catalog.json", default={}))
+            if not draft:
+                reserved = {load_json(file, {}).get("pool_id") for file in root.glob("*.json")}
+                pool_id = pool_next_id()
+                while pool_id in reserved:
+                    pool_id = "pool_" + str(int(pool_id.split("_")[-1]) + 1).zfill(3)
+                draft = {"schema": "tpf_partner_planting_order_v1", "status": "prepared", "partner_id": partner_id,
+                         "request_id": request_id, "offer_id": event["entity_id"], "choice_key": choice["key"],
+                         "revision": revision, "pool_id": pool_id, "choice": choice,
+                         "basis": event["selected_basis"], "tx_hash": audit["tx_hash"], "created_at": now_iso()}
+                write_audit(path, draft)
+            pool_name = _read_partner(partner_id)["name"] + " " + ("Tree Pool" if draft["basis"] == "trees" else "CO₂ Pool") + " " + draft["pool_id"]
+            target = int(choice["trees"]) if draft["basis"] == "trees" else int(Decimal(str(choice["co2_kg"])).to_integral_value(rounding="ROUND_CEILING"))
+            message = default_pool_message(draft["pool_id"], pool_name, draft["basis"], target, selected, "dedicated")
+            return render_template("partner_order_planting.html", draft=draft, choice=choice, selected=selected,
+                                   partner=_read_partner(partner_id), pool_name=pool_name, tree_nation_message=message)
+    except (ValueError, SyncError, OSError, InvalidOperation) as exc:
+        return "Pool preparation stopped: " + str(exc) + ". No planting purchase was made.", 409
+
+
+@app.route("/partners/<partner_id>/requests/<request_id>/plant-selected-pool", methods=["POST"])
+def partner_order_plant_selected_pool(partner_id, request_id):
+    from portal_sync import SyncError
+    from partner_payment import payment_lock, write_audit
+    from partner_pool_order import selected_catalog_option
+    if request.headers.get("Origin") and request.headers["Origin"].rstrip("/") != request.host_url.rstrip("/"):
+        return "Cross-site planting actions are not allowed.", 403
+    if request.form.get("confirm") != "YES" or request.form.get("confirm_offer") != "yes":
+        return "Type YES and confirm the exact paid partner option before planting.", 400
+    if ACTIVE_ENV != "mainnet" or not _read_partner(partner_id) or not re.fullmatch(r"[a-f0-9-]{36}", request_id):
+        return "Mainnet partner request not found", 404
+    root = DATA_ROOT / "partner-pools" / "planting-orders"
+    try:
+        with payment_lock(root):
+            path = root / (request_id + ".json")
+            draft = load_json(path, {}) or {}
+            if not draft or draft.get("partner_id") != partner_id:
+                raise ValueError("Prepare this selected pool first")
+            if draft.get("status") == "created":
+                return redirect(url_for("pool_detail", pool_id=draft["pool_id"]))
+            if draft.get("status") != "prepared":
+                raise ValueError("This order already attempted planting. Review the Tree-Nation response; do not retry a purchase blindly.")
+            event, choice, audit, revision = _paid_partner_pool_selection(partner_id, request_id)
+            if revision != draft.get("revision") or request.form.get("revision") != revision:
+                raise ValueError("The approved selection changed. Prepare and review again.")
+            pool_name = request.form.get("pool_name", "").strip()
+            message = request.form.get("tree_nation_message", "").strip()
+            if not pool_name or len(pool_name) > 160 or pool_name_exists(pool_name):
+                raise ValueError("Use a unique pool name of at most 160 characters")
+            if "#ThePioneerForest" not in message:
+                raise ValueError("Keep #ThePioneerForest in the public Tree-Nation message")
+            if (DATA_ROOT / "co2-pool" / "pools" / (draft["pool_id"] + ".json")).exists():
+                raise ValueError("The reserved pool ID already exists. Review before proceeding.")
+            # Refresh before spending; no re-ranking or general contribution rule.
+            refresh = run_catalog_refresh()
+            if not refresh.get("ran") or refresh.get("exit_code") != 0:
+                raise ValueError("Catalogue refresh failed; no planting request sent")
+            selected = selected_catalog_option(choice, load_json_path(DATA_ROOT / "tree-nation" / "full_catalog.json", default={}))
+            target = int(choice["trees"]) if draft["basis"] == "trees" else int(Decimal(str(choice["co2_kg"])).to_integral_value(rounding="ROUND_CEILING"))
+            draft.update(status="attempting", attempted_at=now_iso(), pool_name=pool_name,
+                         selected=selected, tree_nation_message=message)
+            write_audit(path, draft)
+            # From this point an ambiguous response must remain blocked for review.
+            result = create_pool_from_browser(draft["pool_id"], pool_name, draft["basis"], "dedicated", target,
+                       selected, message, "Exact paid partner offer; general contribution minimum does not apply.",
+                       "partner", partner_id)
+            if not result.get("ok"):
+                draft.update(status="review_required", result_message=result.get("message"),
+                             raw_response_file=result.get("raw_response_file"))
+                write_audit(path, draft)
+                return render_template("pool_result.html", ok=False, title="Partner planting needs review",
+                    message=str(result.get("message") or "Planting did not finish.") + " Do not send another purchase before reviewing the Tree-Nation response.", result=result), 409
+            pool = result["pool"]
+            pool.update(partner_request_id=request_id, partner_offer_id=event["entity_id"],
+                        partner_choice_key=choice["key"], partner_payment_tx_hash=audit["tx_hash"],
+                        partner_paid_pi=audit["amount_pi"])
+            save_json_path(Path(result["pool_file"]), pool)
+            draft.update(status="created", completed_at=now_iso(), pool_file=result["pool_file"])
+            write_audit(path, draft)
+            return render_template("pool_result.html", ok=True, title="Selected partner pool planted",
+                message="The exact selected pool was planted and its order reference saved. Return to online partner activity, verify proof, then connect this pool and publish.", result=result)
+    except (ValueError, SyncError, OSError, InvalidOperation, requests.RequestException, subprocess.SubprocessError) as exc:
+        return "Planting stopped: " + str(exc) + ". If an attempt was recorded, review Tree-Nation before any retry.", 409
 
 
 @app.route("/partners/<partner_id>/requests/<request_id>/connect-pool", methods=["POST"])
@@ -7304,6 +7513,9 @@ def partner_portal_connect_pool(partner_id, request_id):
         return "Partner request not found", 404
     if request.form.get("confirm_verified") != "yes":
         return "Confirm the verified payment and planting before connecting.", 400
+    payment_audit = load_json(DATA_ROOT / "partner-pools" / "payment-matches" / (request_id + ".json"), {}) or {}
+    if payment_audit and payment_audit.get("status") != "complete":
+        return "Finish the verified payment bookkeeping before connecting this pool. Resume the same payment in online activity.", 409
     secret = os.getenv("TPF_OPS_SYNC_SECRET", "")
     if len(secret) < 32:
         return "Portal connection is not configured.", 409
@@ -7527,8 +7739,6 @@ def partner_public_export(partner_id):
                      download_name=partner_id + "-public-setup-preview.zip")
 
 
-
-
 @app.route("/website-data", methods=["GET", "POST"])
 def website_data():
     if request.method == "POST" and (
@@ -7547,6 +7757,7 @@ def website_data():
         result = handle_form(request.form, state_path, config, environment, origin, secret)
     data = screen(state_path, config, environment, origin, secret)
     return render_template("website_data.html", data=data, result=result)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

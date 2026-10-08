@@ -7,8 +7,8 @@
     },
     {
       "path": "ui/app.py",
-      "old_sha256": "b48cd8b132803ece46c862947012b30376a7043466d438f3bc6296c1e2e8ab13",
-      "new_sha256": "8f73be573190ae7b05aae739e705d41bc30c89618245629fcc45317a90c7f50b"
+      "old_sha256": "4e7b102c7add0d14b4b53a3706a3c2652204ad4b02cbe43bd7ea7d9ee94d828e",
+      "new_sha256": "03622cb6652668715d4fb1f43c18f13b9feb25f0db8d0826eb0f70d0cbafa31f"
     },
     {
       "path": "ui/templates/settings_website.html",
