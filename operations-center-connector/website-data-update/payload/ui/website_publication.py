@@ -52,8 +52,14 @@ def _minimum(config):
         raise ValueError('Invalid public minimum in Settings.')
     return format(n.normalize(), 'f')
 
+def _online(origin, secret):
+    online = signed_request(origin, secret, 'GET', ENDPOINT)
+    if not isinstance(online, dict) or online.get('schema') != 'tpf_website_summary_v1':
+        raise ValueError('The website returned an invalid summary. Sync will retry.')
+    return online
+
 def _same(online, payload):
-    return all(online.get(k) == payload.get(k) for k in ('schema', 'minimumCo2KgPerPi', 'impact'))
+    return isinstance(online, dict) and all(online.get(k) == payload.get(k) for k in ('schema', 'minimumCo2KgPerPi', 'impact'))
 
 def _snapshot(calc):
     return [r['proofs'] for r in calc['rows']]
@@ -82,7 +88,7 @@ def tick(path, root, config, environment, origin, secret):
                            'minimumCo2KgPerPi': minimum,
                            'impact': {'estimatedCo2Kg': calc['co2'], 'trees': str(calc['trees']), 'asOf': checked}}
                 state.update(calculation_key=local_key, calculated_on=checked)
-                online = signed_request(origin, secret, 'GET', ENDPOINT)
+                online = _online(origin, secret)
                 if not _same(online, payload):
                     if online.get('revision') != state.get('accepted_online_revision'):
                         raise ValueError('The online summary was changed elsewhere. Check the difference before syncing.')
@@ -139,7 +145,7 @@ def handle_form(form, path, config, environment, origin, secret, root=None):
             if calc['issues']: raise ValueError('Resolve the listed record issues first.')
             if calc['fingerprint'] != form.get('fingerprint'):
                 raise ValueError('Records changed during the first check. Reload and check the calculation.')
-            online = signed_request(origin, secret, 'GET', ENDPOINT)
+            online = _online(origin, secret)
             if form.get('action') == 'reconcile':
                 audit = state.setdefault('corrections', [])
                 audit.append({'at': datetime.now(UTC).isoformat(), 'reason': str(form.get('reason'))[:2000],
